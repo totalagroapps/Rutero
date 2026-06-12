@@ -116,7 +116,7 @@ const App = {
             
             this.showAppMain();
         } else {
-            this.logout();
+            this.logout({ silent: true });
         }
     },
 
@@ -472,7 +472,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         }
     },
 
-    logout() {
+    logout(options = {}) {
         this.state.isLoggedIn = false;
         this.state.activeRole = null;
         this.state.user = null;
@@ -490,7 +490,9 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         document.getElementById('view-role-selection').classList.remove('hidden');
         document.body.className = '';
         
-        this.showToast("Sesión cerrada.");
+        if (!options.silent) {
+            this.showToast("Sesión cerrada.");
+        }
     },
 
     // Open add client registration view
@@ -1667,7 +1669,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             (err) => {
                 // Permission denied or unavailable — silently keep last known coords
                 console.warn("GPS unavailable:", err.message);
-                if (err.code === 1) {
+                if (err.code === 1 && this.state.isLoggedIn) {
                     this.showToast("⚠️ Activa el permiso de ubicación en tu navegador para ver tu posición en el mapa.", true);
                 }
             },

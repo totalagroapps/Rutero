@@ -1,8 +1,11 @@
 // API communication client for Rutero SAM
 const ApiClient = {
     // Default to local or production depending on window.location
+    isLocalHost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+    localBaseUrls: ['http://127.0.0.1:8000', 'http://127.0.0.1:8001'],
+    productionBaseUrl: 'https://rutero-sam-backend-production.up.railway.app',
     baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:8001'
+        ? 'http://127.0.0.1:8000'
         : 'https://rutero-sam-backend-production.up.railway.app',
     
     // Set custom API base URL
@@ -10,22 +13,40 @@ const ApiClient = {
         this.baseUrl = url.trim().replace(/\/$/, '');
     },
 
+    getCandidateBaseUrls() {
+        if (!this.isLocalHost) return [this.productionBaseUrl];
+        return [...new Set([this.baseUrl, ...this.localBaseUrls])];
+    },
+
+    async pingBaseUrl(baseUrl) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+        try {
+            const response = await fetch(`${baseUrl}/docs`, {
+                method: 'GET',
+                signal: controller.signal
+            });
+            return response.ok;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    },
+
     // Check if the server is reachable
     async checkConnection() {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2000);
-            
-            const response = await fetch(`${this.baseUrl}/docs`, { 
-                method: 'HEAD', 
-                signal: controller.signal 
-            });
-            clearTimeout(timeoutId);
-            return response.ok;
-        } catch (e) {
-            console.warn("API Connection check failed", e);
-            return false;
+        for (const candidate of this.getCandidateBaseUrls()) {
+            try {
+                if (await this.pingBaseUrl(candidate)) {
+                    this.baseUrl = candidate;
+                    return true;
+                }
+            } catch (e) {
+                console.warn(`API Connection check failed for ${candidate}`, e);
+            }
         }
+
+        return false;
     },
 
     async fetchWithAuth(url, options = {}) {

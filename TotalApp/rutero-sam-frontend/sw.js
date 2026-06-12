@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'sam-rutero-cache-v12';
+﻿const CACHE_NAME = 'sam-rutero-cache-v13';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -98,24 +98,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Default Strategy for App Shell assets: Stale-While-Revalidate (Cache-first with background network update)
+  // Default Strategy for App Shell assets: Network-first so visual fixes are not trapped in old PWA cache.
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch background update to keep cache fresh
-        fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse.ok && event.request.method === 'GET') {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-            }
-          })
-          .catch((err) => console.log('[Service Worker] Background fetch failed (offline)', err));
-          
-        return cachedResponse;
-      }
-
-      // If not in cache, fetch from network
-      return fetch(event.request).then((response) => {
+    fetch(event.request).then((response) => {
         if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
@@ -125,8 +110,8 @@ self.addEventListener('fetch', (event) => {
           cache.put(event.request, responseClone);
         });
         return response;
-      });
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
 
