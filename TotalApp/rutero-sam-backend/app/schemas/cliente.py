@@ -48,3 +48,10 @@ class ClienteSyncBatchOut(BaseModel):
     total_insertados: int
     total_duplicados: int
     clientes: list[ClienteSyncItemOut]
+
+class ClienteReorderIn(BaseModel):
+    id: int
+    secuencia_ruta: int = Field(ge=0)
+
+class ClienteReorderBatchIn(BaseModel):
+    clientes: list[ClienteReorderIn] = Field(min_length=1)

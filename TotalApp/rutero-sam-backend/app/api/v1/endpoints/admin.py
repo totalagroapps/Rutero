@@ -516,3 +516,15 @@ async def upload_vendedores_excel(db: DbSession, file: UploadFile = File(...)):
         return {"message": "Vendedores procesados con Ã©xito", "nuevos_vendedores": count_added}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+from app.schemas.cliente import ClienteReorderBatchIn
+
+@router.put("/clientes/reordenar", status_code=status.HTTP_200_OK)
+def reordenar_clientes(payload: ClienteReorderBatchIn, db: DbSession):
+    # Process reordering
+    for c_in in payload.clientes:
+        cliente_db = db.get(Cliente, c_in.id)
+        if cliente_db:
+            cliente_db.secuencia_ruta = c_in.secuencia_ruta
+    db.commit()
+    return {"message": "Ruta reordenada con éxito"}

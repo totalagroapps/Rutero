@@ -251,6 +251,18 @@ const ApiClient = {
         return await response.json();
     },
 
+    async reordenarRuta(ordenList) {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/clientes/reordenar`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clientes: ordenList })
+        });
+        if (!response.ok) {
+            throw new Error(`Error HTTP al reordenar ruta: ${response.status}`);
+        }
+        return await response.json();
+    },
+
     async deleteAdminCliente(clienteId) {
         const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/clientes/${clienteId}`, {
             method: 'DELETE'

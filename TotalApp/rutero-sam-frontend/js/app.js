@@ -2190,8 +2190,16 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
         this.state.clientes = optimized;
         localStorage.setItem('sam_cache_clientes', JSON.stringify(this.state.clientes));
-        this.showToast("Ruta optimizada por distancia.");
         this.renderRutaView();
+
+        // Sync reordered route with backend
+        const ordenList = optimized.map(c => ({ id: c.id, secuencia_ruta: c.secuencia_ruta }));
+        ApiClient.reordenarRuta(ordenList).then(() => {
+            this.showToast("Ruta optimizada y guardada en el servidor.");
+        }).catch(err => {
+            console.error(err);
+            this.showToast("Ruta optimizada localmente (sin conexión).");
+        });
     },
 
     calculateDistance(lat1, lon1, lat2, lon2) {
