@@ -1425,7 +1425,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         });
 
         // Cancel active visit
-        document.getElementById('btn-cancel-visit').addEventListener('click', () => {
+        const btnCanc = document.getElementById('btn-cancel-visit'); if(btnCanc) btnCanc.addEventListener('click', () => {
             if (confirm("¿Seguro que deseas salir del registro de visita?")) {
                 this.state.activeVisit = null;
                 this.state.cart = {};
@@ -1433,11 +1433,11 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             }
         });
 
-        document.getElementById('btn-complete-visit').addEventListener('click', () => this.completeVisit());
+        const btnComp = document.getElementById('btn-complete-visit'); if(btnComp) btnComp.addEventListener('click', () => this.completeVisit());
 
 
 
-        document.getElementById('photo-upload-trigger').addEventListener('click', (e) => {
+        const pUpTr = document.getElementById('photo-upload-trigger'); if(pUpTr) pUpTr.addEventListener('click', (e) => {
             if (e.target.id !== 'btn-remove-photo' && e.target.id !== 'real-photo-input') {
                 const realInput = document.getElementById('real-photo-input');
                 if (realInput) realInput.click();
