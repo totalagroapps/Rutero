@@ -1386,21 +1386,19 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         this.initAddressAutocomplete();
         document.getElementById('sync-button').addEventListener('click', () => this.syncWithBackend());
 
-        // Toggle subviews in Route
-        document.getElementById('btn-show-map').addEventListener('click', () => {
-            document.getElementById('btn-show-map').classList.add('active');
-            document.getElementById('btn-show-list').classList.remove('active');
-            document.getElementById('route-map-container').classList.add('active');
-            document.getElementById('route-list-container').classList.remove('active');
-            MapController.invalidateSize();
-        });
-
-        document.getElementById('btn-show-list').addEventListener('click', () => {
-            document.getElementById('btn-show-map').classList.remove('active');
-            document.getElementById('btn-show-list').classList.add('active');
-            document.getElementById('route-map-container').classList.remove('active');
-            document.getElementById('route-list-container').classList.add('active');
-        });
+        // UX Phase 2: Bottom Sheet Toggle Logic
+        const bottomSheetHandle = document.getElementById('bottom-sheet-handle');
+        if (bottomSheetHandle) {
+            bottomSheetHandle.addEventListener('click', () => {
+                const sheet = document.getElementById('route-list-container');
+                sheet.classList.toggle('expanded');
+                setTimeout(() => {
+                    if(typeof MapController !== 'undefined' && MapController.invalidateSize) {
+                        MapController.invalidateSize();
+                    }
+                }, 300);
+            });
+        }
 
         document.getElementById('btn-optimize').addEventListener('click', () => this.optimizeRouteByDistance());
 
