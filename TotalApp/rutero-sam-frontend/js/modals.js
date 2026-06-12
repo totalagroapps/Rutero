@@ -83,7 +83,7 @@ const AppModals = {
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-vendedor-title">Nuevo Vendedor</h3>
-                <button class="btn-close-modal" onclick="App.closeVendedorModal()">×</button>
+                <button class="btn-close-modal" onclick="AdminController.closeVendedorModal()">×</button>
             </div>
             <form id="form-admin-vendedor" onsubmit="AdminController.handleSaveVendedor(event)" style="padding-top: 12px;">
                 <input type="hidden" id="admin-vendedor-id">
@@ -105,7 +105,7 @@ const AppModals = {
         <div class="modal-content" style="max-height:85vh;">
             <div class="modal-header">
                 <h3 id="modal-cliente-admin-title">Nuevo Comercio</h3>
-                <button class="btn-close-modal" onclick="App.closeClienteAdminModal()">×</button>
+                <button class="btn-close-modal" onclick="AdminController.closeClienteAdminModal()">×</button>
             </div>
             <form id="form-admin-cliente" onsubmit="AdminController.handleSaveClienteAdmin(event)" class="flex-col-gap">
                 <input type="hidden" id="admin-cliente-id">
@@ -188,7 +188,7 @@ const AppModals = {
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-producto-title">Nuevo Producto</h3>
-                <button class="btn-close-modal" onclick="App.closeProductoModal()">×</button>
+                <button class="btn-close-modal" onclick="AdminController.closeProductoModal()">×</button>
             </div>
             <form id="form-admin-producto" onsubmit="AdminController.handleSaveProducto(event)" class="flex-col-gap">
                 <input type="hidden" id="admin-producto-id">
@@ -261,7 +261,7 @@ const AppModals = {
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Certificar Despacho</h3>
-                <button class="btn-close-modal" onclick="App.closeCertificarModal()">×</button>
+                <button class="btn-close-modal" onclick="DespachoController.closeCertificarModal()">×</button>
             </div>
             <form id="form-certificar-pedido" onsubmit="DespachoController.handleSaveCertificacion(event)" class="flex-col-gap">
                 <input type="hidden" id="certificar-pedido-id">
@@ -285,7 +285,7 @@ const AppModals = {
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-usuario-title">Nuevo Usuario</h3>
-                <button class="btn-close-modal" onclick="App.closeUsuarioModal()">×</button>
+                <button class="btn-close-modal" onclick="AdminController.closeUsuarioModal()">×</button>
             </div>
             <form id="form-admin-usuario" onsubmit="AdminController.handleSaveUsuario(event)" class="flex-col-gap">
                 <input type="hidden" id="admin-usuario-id">
