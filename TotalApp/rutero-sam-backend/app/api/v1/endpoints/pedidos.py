@@ -20,7 +20,7 @@ def obtener_estadisticas_vendedor(vendedor_id: int, db: DbSession):
 
 @router.get("/vendedor/{vendedor_id}", response_model=list[PedidoOut])
 def obtener_pedidos_por_vendedor(vendedor_id: int, db: DbSession) -> list[Pedido]:
-    stmt = select(Pedido).where(Pedido.vendedor_id == vendedor_id).order_by(Pedido.fecha_creacion.desc())
+    stmt = select(Pedido).where(Pedido.vendedor_id == vendedor_id).order_by(Pedido.fecha_hora.desc())
     return list(db.scalars(stmt))
 
 
