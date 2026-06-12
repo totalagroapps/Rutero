@@ -1,0 +1,1 @@
+web: python scripts/alter_columns.py && python scripts/migrate_advanced_reports.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT

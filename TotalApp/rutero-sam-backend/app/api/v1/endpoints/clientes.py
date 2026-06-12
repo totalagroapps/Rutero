@@ -1,0 +1,96 @@
+from fastapi import APIRouter, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+
+from app.dependencies import DbSession
+from app.models.cliente import Cliente
+from app.schemas.cliente import (
+    ClienteSyncBatchIn,
+    ClienteSyncBatchOut,
+    ClienteSyncItemOut,
+)
+
+
+router = APIRouter(prefix="/clientes", tags=["Clientes"])
+
+
+@router.post(
+    "/sync",
+    response_model=ClienteSyncBatchOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def sincronizar_clientes(
+    payload: ClienteSyncBatchIn,
+    db: DbSession,
+) -> ClienteSyncBatchOut:
+    clientes_respuesta: list[ClienteSyncItemOut] = []
+    total_insertados = 0
+    total_duplicados = 0
+
+    try:
+        for cliente_in in payload.clientes:
+            cliente_existente = db.scalar(
+                select(Cliente).where(Cliente.uuid_dispositivo == cliente_in.uuid_dispositivo)
+            )
+
+            if cliente_existente is not None:
+                total_duplicados += 1
+                clientes_respuesta.append(
+                    ClienteSyncItemOut(
+                        uuid_dispositivo=cliente_existente.uuid_dispositivo or cliente_in.uuid_dispositivo,
+                        cliente_id=cliente_existente.id,
+                        codigo_pdv=cliente_existente.codigo_pdv,
+                        estado_sincronizacion="YA_SINCRONIZADO",
+                    )
+                )
+                continue
+
+            cliente = Cliente(
+                uuid_dispositivo=cliente_in.uuid_dispositivo,
+                codigo_pdv=cliente_in.codigo_pdv,
+                nombre=cliente_in.nombre,
+                encargado=cliente_in.encargado,
+                direccion=cliente_in.direccion,
+                latitud=cliente_in.latitud,
+                longitud=cliente_in.longitud,
+                frecuencia=cliente_in.frecuencia,
+                secuencia_ruta=cliente_in.secuencia_ruta,
+                activo=cliente_in.activo,
+                vendedor_id=cliente_in.vendedor_id,
+            )
+
+            db.add(cliente)
+            db.flush()
+
+            total_insertados += 1
+            clientes_respuesta.append(
+                ClienteSyncItemOut(
+                    uuid_dispositivo=cliente.uuid_dispositivo or cliente_in.uuid_dispositivo,
+                    cliente_id=cliente.id,
+                    codigo_pdv=cliente.codigo_pdv,
+                    estado_sincronizacion="SINCRONIZADO",
+                )
+            )
+
+        db.commit()
+
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Error de integridad al sincronizar clientes. Verifique codigo_pdv o uuid_dispositivo duplicado.",
+        ) from exc
+
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error inesperado durante la sincronizacion de clientes.",
+        ) from exc
+
+    return ClienteSyncBatchOut(
+        total_recibidos=len(payload.clientes),
+        total_insertados=total_insertados,
+        total_duplicados=total_duplicados,
+        clientes=clientes_respuesta,
+    )

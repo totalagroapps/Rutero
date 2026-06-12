@@ -1,0 +1,11 @@
+{
+  "name": "rutero-sam-frontend",
+  "version": "1.0.0",
+  "description": "Frontend estático para el Rutero SAM en PWA",
+  "scripts": {
+    "start": "npx -y serve -s . -l $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}

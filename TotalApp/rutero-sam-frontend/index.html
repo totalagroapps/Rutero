@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TotalAPP - Sistema de Inventario</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest & iOS Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TotalAPP">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="theme-color" content="#2c5f2e">
+    
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- App Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- 1. LANDING: SELECT ROLE VIEW -->
+    <section id="view-role-selection" class="landing-container">
+        <div class="landing-card">
+            <div class="landing-logo">
+                <i data-lucide="package-open" class="animate-pulse"></i>
+                <h2>TotalAPP</h2>
+                <p>Sistema de Inventario y Rutas</p>
+            </div>
+            
+            <h3 class="role-selector-title">Selecciona tu rol</h3>
+            
+            <div class="role-btn-card vendedor" onclick="App.selectRole('vendedor')">
+                <div class="role-btn-card-content">
+                    <div class="role-btn-card-icon">
+                        <i data-lucide="user"></i>
+                    </div>
+                    <div class="role-btn-card-text">
+                        <h3>Vendedor</h3>
+                        <p>Realiza pedidos a clientes y da seguimiento a tus órdenes.</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="role-btn-card-arrow"></i>
+            </div>
+            
+            <div class="role-btn-card despacho" onclick="App.selectRole('despacho')">
+                <div class="role-btn-card-content">
+                    <div class="role-btn-card-icon" style="background: #ecfdf5; color: #10b981;">
+                        <i data-lucide="truck"></i>
+                    </div>
+                    <div class="role-btn-card-text">
+                        <h3>Despacho / Bodega</h3>
+                        <p>Actualiza stock de terminado y certifica máquinas despachadas.</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="role-btn-card-arrow"></i>
+            </div>
+            
+            <div class="role-btn-card administrador" onclick="App.selectRole('administrador')">
+                <div class="role-btn-card-content">
+                    <div class="role-btn-card-icon">
+                        <i data-lucide="shield" style="color: #6366f1;"></i>
+                    </div>
+                    <div class="role-btn-card-text">
+                        <h3>Administrador</h3>
+                        <p>Gestiona vendedores, comercios, catálogo de productos y verifica rutas en mapa.</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="role-btn-card-arrow"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. LOGIN VIEW -->
+    <section id="view-login" class="login-view-container hidden">
+        <div class="login-card">
+            <button class="login-back-btn" onclick="App.backToRoleSelection()">
+                <i data-lucide="arrow-left"></i> Volver
+            </button>
+            
+            <div class="login-header">
+                <i data-lucide="lock" id="login-role-icon"></i>
+                <h2>Bienvenido de nuevo</h2>
+                <p>Inicia sesión para continuar</p>
+            </div>
+            
+            <form id="login-form" onsubmit="App.handleLogin(event)">
+                <div class="form-group" id="username-group">
+                    <label for="login-username">Usuario</label>
+                    <input type="text" id="login-username" placeholder="Nombre de usuario" required>
+                </div>
+                <div class="form-group" id="password-group">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 24px;">Ingresar</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- App Header (Hidden by default, shown after login) -->
+    <header class="app-header hidden">
+        <div class="header-content">
+            <div class="app-logo">
+                <i data-lucide="package-open" class="logo-icon"></i>
+                <div>
+                    <h1 id="header-title">TotalAPP</h1>
+                    <span id="vendedor-nombre">Cargando perfil...</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="sync-button" class="btn-sync" title="Sincronizar Datos">
+                    <i data-lucide="refresh-cw" id="sync-icon"></i>
+                    <span id="sync-badge" class="badge">0</span>
+                </button>
+                <div id="connection-status" class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Online</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Views Container (Hidden by default, shown after login) -->
+    <main class="app-main hidden">
+        
+        <!-- ==================== ROLE: VENDEDOR VIEWS ==================== -->
+        
+        <!-- VIEW: VENDEDOR DASHBOARD -->
+        <section id="view-dashboard" class="app-view">
+            <div class="dashboard-user-banner">
+                <div class="user-avatar">
+                    <i data-lucide="user"></i>
+                </div>
+                <div class="user-welcome">
+                    <h3 id="vendedor-welcome-title">Hola, Samuel Pérez</h3>
+                    <p>Vendedor</p>
+                </div>
+            </div>
+
+            <div class="stats-grid-row">
+                <div class="stat-box pending">
+                    <div class="stat-icon"><i data-lucide="clock"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="vendedor-pending-count">12</span>
+                        <span class="lbl">Pendientes</span>
+                    </div>
+                </div>
+                <div class="stat-box dispatched">
+                    <div class="stat-icon"><i data-lucide="check"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="vendedor-dispatched-count">8</span>
+                        <span class="lbl">Despachados</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-grid-row">
+                <div class="stat-box canceled">
+                    <div class="stat-icon"><i data-lucide="x-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="vendedor-canceled-count">3</span>
+                        <span class="lbl">Cancelados</span>
+                    </div>
+                </div>
+                <div class="stat-box visited">
+                    <div class="stat-icon"><i data-lucide="users"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="vendedor-visited-count">0/6</span>
+                        <span class="lbl">Visitados hoy</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h2>Acciones rápidas</h2>
+            </div>
+            <div class="quick-actions-box">
+                <div class="action-btn-card" onclick="App.navigateToView('ruta')">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Crear Pedido</span>
+                </div>
+                <div class="action-btn-card" onclick="App.navigateToView('ruta')">
+                    <i data-lucide="search"></i>
+                    <span>Buscar Cliente</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR RUTA (MAPA Y LISTA DE VISITAS) -->
+        <section id="view-ruta" class="app-view">
+            <div class="view-switcher">
+                <button class="switch-btn active" id="btn-show-map"><i data-lucide="map"></i> Mapa</button>
+                <button class="switch-btn" id="btn-show-list"><i data-lucide="list"></i> Lista de Clientes</button>
+            </div>
+
+            <div id="route-map-container" class="map-wrapper active">
+                <div id="map"></div>
+            </div>
+
+            <div id="route-list-container" class="list-wrapper">
+                <div class="route-header">
+                    <span>Lista de Clientes</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-optimize" class="btn btn-secondary btn-sm" title="Reordenar ruta por distancia">
+                            <i data-lucide="sparkles"></i> Optimizar
+                        </button>
+                        <button id="btn-add-client-trigger" class="btn btn-primary btn-sm" title="Agregar nuevo cliente" onclick="App.openAddClientView()">
+                            <i data-lucide="plus"></i> Nuevo
+                        </button>
+                    </div>
+                </div>
+                <div id="route-clients-list" class="clients-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR CATALOGO -->
+        <section id="view-catalogo" class="app-view">
+            <div class="search-bar-container">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="catalog-search" placeholder="Buscar productos por SKU o nombre...">
+                </div>
+            </div>
+            <div class="catalog-grid" id="catalog-items-container">
+                <!-- Dynamically Populated -->
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR DETALLE DE VISITA / TOMA DE PEDIDO -->
+        <section id="view-visita" class="app-view">
+            <div class="visit-header">
+                <button id="btn-cancel-visit" class="btn-back"><i data-lucide="arrow-left"></i> Volver</button>
+                <div class="visit-client-title">
+                    <h2 id="visit-client-name">Cliente Seleccionado</h2>
+                    <span id="visit-client-code">PDV000</span>
+                </div>
+            </div>
+
+            <div class="visit-tabs">
+                <button class="visit-tab-btn active" data-step="order"><i data-lucide="shopping-cart"></i> Pedido</button>
+                <button class="visit-tab-btn" data-step="cartera"><i data-lucide="wallet"></i> Cartera</button>
+                <button class="visit-tab-btn" data-step="no-sale"><i data-lucide="alert-triangle"></i> No Venta</button>
+                <button class="visit-tab-btn" data-step="checkout"><i data-lucide="check-square"></i> Cierre</button>
+            </div>
+
+            <!-- STEP: ORDER TAKING -->
+            <div class="visit-content-step active" id="step-order">
+                <div class="order-form-container">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                        <h3 style="margin: 0;">Productos del pedido</h3>
+                        <select id="visit-tipo-cliente" onchange="App.handleTipoClienteChange(this.value)" style="padding: 4px 8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.8rem; background: #f9f9f9;">
+                            <option value="directo">Cliente Directo</option>
+                            <option value="distribuidor">Distribuidor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="search-box minified" style="margin: 12px 0;">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="visit-product-search" placeholder="Buscar producto...">
+                    </div>
+
+                    <div class="visit-products-selection" id="visit-products-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+
+                    <div class="order-summary-box">
+                        <div class="summary-line">
+                            <span>Total productos:</span>
+                            <strong id="order-qty-count">0</strong>
+                        </div>
+                        <div class="summary-line total-line">
+                            <span>Total pedido:</span>
+                            <strong id="order-total-amount">$0.00</strong>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="App.setVisitStep('checkout')">Enviar Pedido</button>
+                </div>
+            </div>
+            <!-- STEP: CARTERA -->
+            <div class="visit-content-step" id="step-cartera">
+                <div style="text-align:center; padding: 20px;">
+                    <i data-lucide="wallet" style="width:48px; height:48px; color:var(--primary-color); margin-bottom:12px;"></i>
+                    <h3 style="margin-bottom:8px;">Estado de Cartera</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;">Revisa las facturas pendientes de este cliente y registra pagos.</p>
+                    
+                    <div style="background:var(--bg-secondary); border-radius:var(--border-radius-md); padding:16px; margin-bottom:16px; text-align:left;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <span style="font-size:0.85rem; color:var(--text-secondary);">Total Adeudado:</span>
+                            <span id="cartera-total-adeudado" style="font-weight:700; color:var(--danger-color);">$0</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="font-size:0.85rem; color:var(--text-secondary);">Vencido (>30d):</span>
+                            <span id="cartera-total-vencido" style="font-weight:700; color:var(--danger-color);">$0</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-outline btn-block" onclick="App.showAbonoModal()">Registrar Pago / Abono</button>
+                    
+                    <div id="cartera-facturas-list" style="margin-top:20px; text-align:left; max-height:250px; overflow-y:auto;">
+                        <!-- Dynamically loaded -->
+                    </div>
+                </div>
+            </div>
+            <!-- STEP: NO SALE REGISTRY -->
+            <div class="visit-content-step" id="step-no-sale">
+                <div class="no-sale-container">
+                    <h3>Registrar Novedad (No Venta)</h3>
+                    <p class="description">Selecciona el motivo de no venta:</p>
+                    
+                    <div class="form-group-radio">
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="negocio_cerrado" checked>
+                            <span class="radio-custom"></span>
+                            <span>Negocio Cerrado / No atiende</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="cliente_ausente">
+                            <span class="radio-custom"></span>
+                            <span>Encargado Ausente</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="sin_presupuesto">
+                            <span class="radio-custom"></span>
+                            <span>Cliente Sin Presupuesto / Dinero</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="tiene_stock">
+                            <span class="radio-custom"></span>
+                            <span>Tiene Stock Suficiente</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="no-sale-notes">Comentarios Adicionales</label>
+                        <textarea id="no-sale-notes" placeholder="Escribe notas sobre por qué no se realizó la venta..."></textarea>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="App.completeVisit()">Registrar Novedad</button>
+                </div>
+            </div>
+
+            <!-- STEP: CHECKOUT & DIGITAL SIGNATURE -->
+            <div class="visit-content-step" id="step-checkout">
+                <div class="checkout-container">
+                    <h3>Cierre y Conformidad</h3>
+                    
+                    <div class="form-group">
+                        <label>Firma Digital del Cliente</label>
+                        <div class="signature-pad-container">
+                            <canvas id="signature-canvas"></canvas>
+                            <button type="button" id="btn-clear-signature" class="btn btn-secondary btn-sm">
+                                <i data-lucide="trash-2"></i> Limpiar Firma
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fotografía de Respaldo (Opcional)</label>
+                        <div class="photo-upload-box" id="photo-upload-trigger">
+                            <i data-lucide="camera" class="photo-icon"></i>
+                            <span id="photo-status">Haga clic para simular foto</span>
+                            <div id="photo-preview-container" class="hidden">
+                                <img id="photo-preview" src="" alt="Respaldo">
+                                <button type="button" id="btn-remove-photo" class="btn btn-danger btn-xs">Quitar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="btn-complete-visit" class="btn btn-success btn-lg btn-block">
+                            <i data-lucide="check-circle"></i> Finalizar Visita y Check-out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR PEDIDOS HISTORIAL -->
+        <section id="view-pedidos" class="app-view">
+            <div class="view-switcher">
+                <button class="switch-btn active" data-status-filter="PENDIENTE" onclick="App.filterPedidosList('PENDIENTE')">Pendientes</button>
+                <button class="switch-btn" data-status-filter="DESPACHADO" onclick="App.filterPedidosList('DESPACHADO')">Despachados</button>
+                <button class="switch-btn" data-status-filter="CANCELADO" onclick="App.filterPedidosList('CANCELADO')">Cancelados</button>
+            </div>
+            
+            <div id="pedidos-list-container" class="catalog-grid">
+                <!-- Loaded dynamically -->
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR CARTERA (MAIN MENU) -->
+        <section id="view-cartera" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Consulta de Cartera</span>
+            </div>
+            <div class="search-bar-container">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="cartera-main-search" placeholder="Buscar cliente por nombre o código..." oninput="App.renderMainCartera()">
+                </div>
+            </div>
+            <div class="summary-card" style="padding:16px; margin-bottom:12px;">
+                <p style="font-size:0.85rem; color:var(--text-secondary); text-align:center;">Seleccione un cliente para ver su estado de cuenta y registrar pagos.</p>
+            </div>
+            <div id="cartera-main-list">
+                <!-- Loaded dynamically -->
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR AGREGAR CLIENTE -->
+        <section id="view-agregar-cliente" class="app-view">
+            <div class="visit-header">
+                <button type="button" class="btn-back" onclick="App.navigateToView('ruta')">
+                    <i data-lucide="arrow-left"></i> Volver
+                </button>
+                <div class="visit-client-title">
+                    <h2>Registrar Nuevo Comercio</h2>
+                    <span style="color: var(--text-secondary);">Ingresa la información del punto de venta</span>
+                </div>
+            </div>
+
+            <div class="summary-card" style="padding: 20px;">
+                <form id="add-client-form" onsubmit="App.handleSaveCliente(event)">
+                    <div class="form-group">
+                        <label for="new-client-name">Nombre del Comercio / Local *</label>
+                        <input type="text" id="new-client-name" required placeholder="Ej. Almacén Los Aromos">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-client-encargado">Nombre del Encargado</label>
+                        <input type="text" id="new-client-encargado" placeholder="Ej. Pedro Soto">
+                    </div>
+
+                    <div class="form-group" style="position: relative;">
+                        <label for="new-client-direccion">Dirección Completa *</label>
+                        <input type="text" id="new-client-direccion" required placeholder="Ej. Calle Principal 123, Local B" autocomplete="off">
+                        <ul id="new-client-direccion-suggestions" class="autocomplete-suggestions hidden"></ul>
+                    </div>
+
+                    <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="new-client-codigo">Código PDV *</label>
+                            <input type="text" id="new-client-codigo" required placeholder="Ej. PDV007">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-client-frecuencia">Frecuencia de Visita</label>
+                            <select id="new-client-frecuencia">
+                                <option value="Semanal" selected>Semanal</option>
+                                <option value="Quincenal">Quincenal</option>
+                                <option value="Mensual">Mensual</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-client-secuencia">Secuencia en la Ruta</label>
+                        <input type="number" id="new-client-secuencia" min="1" required placeholder="1">
+                    </div>
+
+                    <!-- GPS Coordinates capture box -->
+                    <div class="gps-capture-card" style="background: #f8f9fa; border: 1px dashed rgba(0,0,0,0.12); border-radius: var(--border-radius-md); padding: 16px; margin: 16px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="map-pin" style="color: var(--primary-color); width: 16px; height: 16px;"></i> Ubicación Geográfica (GPS)
+                            </span>
+                            <span id="gps-capture-badge" class="status-badge critical" style="font-size: 0.65rem; padding: 2px 8px; border-radius: 20px;">Sin ubicar</span>
+                        </div>
+                        
+                        <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: var(--text-secondary);">Latitud</label>
+                                <input type="text" id="new-client-lat" readonly placeholder="No capturada" style="background: #e9ecef; font-size: 0.8rem; padding: 8px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: var(--text-secondary);">Longitud</label>
+                                <input type="text" id="new-client-lng" readonly placeholder="No capturada" style="background: #e9ecef; font-size: 0.8rem; padding: 8px;">
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-capture-gps" class="btn btn-secondary btn-block btn-sm" onclick="App.captureClientGps()">
+                            <i data-lucide="locate"></i> Capturar Ubicación Actual
+                        </button>
+
+                        <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                            <label style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px; display: block;">O ajustar en Mapa</label>
+                            <div id="new-client-picker-map" style="height: 180px; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.12); z-index: 1;"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 16px;">
+                        <i data-lucide="save"></i> Guardar y Registrar Comercio
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- ==================== ROLE: DESPACHO VIEWS ==================== -->
+
+        <!-- VIEW: DESPACHO DASHBOARD -->
+        <section id="view-despacho-dashboard" class="app-view">
+            <div class="dashboard-user-banner" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="user-avatar" style="background: rgba(255,255,255,0.2);">
+                    <i data-lucide="truck"></i>
+                </div>
+                <div class="user-welcome">
+                    <h3 id="despacho-welcome-title">Bodega y Despachos</h3>
+                    <p>Módulo de Despacho</p>
+                </div>
+            </div>
+
+            <div class="stats-grid-row">
+                <div class="stat-box pending" style="background: #e6fffa; color: #087f5b; border-color: #96f2d7;">
+                    <div class="stat-icon"><i data-lucide="clock"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="despacho-pending-count">0</span>
+                        <span class="lbl">Por Despachar</span>
+                    </div>
+                </div>
+                <div class="stat-box dispatched" style="background: #e7f5ff; color: #0b7285; border-color: #a5d8ff;">
+                    <div class="stat-icon"><i data-lucide="package"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="despacho-stock-alert-count">0</span>
+                        <span class="lbl">Items Stock Bajo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h2>Acciones de Bodega</h2>
+            </div>
+            <div class="quick-actions-box">
+                <div class="action-btn-card" onclick="App.navigateToView('despacho-certificar')">
+                    <i data-lucide="shield-check" style="color: #10b981;"></i>
+                    <span>Certificar Despacho</span>
+                </div>
+                <div class="action-btn-card" onclick="App.navigateToView('despacho-inventario')">
+                    <i data-lucide="layers" style="color: #10b981;"></i>
+                    <span>Control de Stock</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: DESPACHO INVENTARIO (CONTROL DE STOCK) -->
+        <section id="view-despacho-inventario" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Control de Inventario de Fábrica</span>
+            </div>
+            <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="despacho-stock-search" placeholder="Buscar productos para actualizar stock...">
+                </div>
+            </div>
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">SKU</th>
+                                <th style="padding: 12px 16px;">Nombre</th>
+                                <th style="padding: 12px 16px;">Stock Disponible</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-despacho-stock">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: DESPACHO CERTIFICAR PEDIDOS -->
+        <section id="view-despacho-certificar" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Certificación de Máquinas Despachadas</span>
+            </div>
+            <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="despacho-pedidos-search" placeholder="Buscar por comercio o ID...">
+                </div>
+            </div>
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">Pedido</th>
+                                <th style="padding: 12px 16px;">Comercio</th>
+                                <th style="padding: 12px 16px;">Fecha</th>
+                                <th style="padding: 12px 16px;">Certificación / Estado</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-despacho-pedidos">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== ADMIN INFORMES ==================== -->
+        <section id="view-admin-informes" class="app-view">
+            <div style="padding: 16px;">
+                <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 12px; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px;">
+                    Informes Detallados y Analítica
+                </h2>
+                
+                <div class="summary-card" style="padding: 16px; margin-bottom: 16px; background:#f9fafb;">
+                    <h3 style="font-size: 0.95rem; margin-bottom:12px;"><i data-lucide="filter" style="width:16px;height:16px; vertical-align:text-bottom;"></i> Filtros del Informe</h3>
+                    
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label style="font-size:0.75rem; font-weight:600;">Tipo de Informe</label>
+                        <select id="informe-tipo" class="form-input" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;">
+                            <option value="1">1. Ventas por vendedor</option>
+                            <option value="2">2. Visitas vs planificadas</option>
+                            <option value="3">3. Efectividad de visita</option>
+                            <option value="4">4. Cumplimiento de cuotas</option>
+                            <option value="5">5. Clientes activos vs inactivos</option>
+                            <option value="6">6. Nuevos clientes captados</option>
+                            <option value="7">7. Riesgo de abandono</option>
+                            <option value="8">8. Cobertura geográfica</option>
+                            <option value="9">9. Pedidos por estado</option>
+                            <option value="10">10. Productos más vendidos</option>
+                            <option value="11">11. Baja rotación</option>
+                            <option value="12">12. Devoluciones y cancelaciones</option>
+                            <option value="13">13. Cartera por vendedor</option>
+                            <option value="14">14. Cobranza realizada</option>
+                            <option value="15">15. Clientes en mora</option>
+                        </select>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Período</label>
+                            <select id="informe-periodo" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;" onchange="App.toggleRangoFechas()">
+                                <option value="hoy">Hoy</option>
+                                <option value="semana">Esta Semana</option>
+                                <option value="mes" selected>Este Mes</option>
+                                <option value="rango">Rango Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Filtro Específico</label>
+                            <select id="informe-filtro-entidad" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;">
+                                <option value="todos">Todos los Vendedores / Zonas</option>
+                                <!-- Se llenará dinámicamente con vendedores -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fechas Personalizadas Ocultas por defecto -->
+                    <div id="informe-rango-fechas" style="display:none; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Desde</label>
+                            <input type="date" id="informe-fecha-desde" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Hasta</label>
+                            <input type="date" id="informe-fecha-hasta" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd;">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="App.generarInformeAdmin()" style="margin-top:8px;">
+                        <i data-lucide="play"></i> Generar Informe
+                    </button>
+                </div>
+
+                <!-- Contenedor de Resultados -->
+                <div id="informe-resultados" class="hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h3 style="font-size: 1.05rem;" id="informe-titulo-resultado">Resultados</h3>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-outline btn-sm" onclick="App.exportarInformeActual('pdf')" title="Descargar PDF"><i data-lucide="file-text"></i> PDF</button>
+                            <button class="btn btn-outline btn-sm" onclick="App.exportarInformeActual('excel')" title="Descargar Excel"><i data-lucide="file-spreadsheet"></i> Excel</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Resumen Ejecutivo -->
+                    <div style="background:var(--bg-secondary); border-left: 4px solid var(--primary-color); padding:12px; margin-bottom:16px; border-radius:4px;">
+                        <p style="font-size:0.85rem; font-weight:600; margin-bottom:4px;">Resumen Ejecutivo:</p>
+                        <p id="informe-resumen-ejecutivo" style="font-size:0.82rem; color:var(--text-secondary); line-height:1.4;">
+                            <!-- Máximo 3 líneas inyectadas por JS -->
+                        </p>
+                    </div>
+
+                    <!-- Tabla de Datos -->
+                    <div style="overflow-x:auto; border-radius:4px; border:1px solid rgba(0,0,0,0.05); margin-bottom:16px;">
+                        <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                            <thead id="informe-tabla-head">
+                                <!-- Dinámico -->
+                            </thead>
+                            <tbody id="informe-tabla-body">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== CONFIGURACION Y AJUSTES ==================== -->
+        <section id="view-config" class="app-view">
+            <div class="settings-container">
+                
+                <div class="settings-group">
+                    <h3>Perfil de Usuario</h3>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; color: var(--text-secondary);">
+                        <p><strong>Usuario:</strong> <span id="settings-username">Cargando...</span></p>
+                        <p><strong>Rol:</strong> <span id="settings-role" style="text-transform: capitalize;">Cargando...</span></p>
+                    </div>
+                </div>
+
+                <div class="settings-group role-administrador-only">
+                    <h3>Utilidades de Administrador</h3>
+                    <p class="help-text" style="margin-bottom: 12px;">Herramientas avanzadas para la gestión del sistema.</p>
+                    <div class="settings-actions">
+                        <button id="btn-admin-force-sync" class="btn btn-primary btn-block" onclick="App.syncWithBackend(); App.showToast('Forzando sincronización maestra...');">
+                            <i data-lucide="refresh-cw"></i> Sincronización Forzada
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-group role-vendedor-only">
+                    <h3>Ubicación GPS</h3>
+                    <p class="help-text" style="margin-bottom: 12px;">La app usa el GPS de tu dispositivo para mostrarte en el mapa y calcular rutas. Asegúrate de permitir el acceso a la ubicación cuando el navegador lo solicite.</p>
+                    <button id="btn-recenter-gps" class="btn btn-secondary btn-block" onclick="App.updateUserCoords(); App.showToast('Actualizando ubicación...');">
+                        <i data-lucide="locate"></i> Centrar mapa en mi ubicación
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <h3>PWA - Instalación</h3>
+                    <div class="settings-actions">
+                        <button id="btn-install-pwa" class="btn btn-success btn-block" style="display:none;">
+                            <i data-lucide="download-cloud"></i> Descargar App en Celular
+                        </button>
+                        <p id="pwa-install-help-text" class="help-text">Instala TotalAPP en la pantalla de inicio para acceso rápido en pantalla completa y soporte sin conexión.</p>
+                    </div>
+                </div>
+
+                <div class="settings-group hidden" id="ios-install-instructions">
+                    <h3>Instalar en iPhone / iPad</h3>
+                    <p class="help-text" style="color: var(--text-primary); margin-bottom: 8px;">
+                        Para instalar esta app en tu dispositivo iOS:
+                    </p>
+                    <ol class="help-text" style="padding-left: 16px; display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); line-height: 1.4;">
+                        <li>Abre esta página en el navegador <b>Safari</b>.</li>
+                        <li>Presiona el botón de <b>Compartir</b> <i data-lucide="share" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> en la barra inferior.</li>
+                        <li>Busca y selecciona la opción <b>"Agregar a Inicio"</b>.</li>
+                    </ol>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Acciones de Datos</h3>
+                    <div class="settings-actions">
+                        <button id="btn-download-report" class="btn btn-secondary btn-block">
+                            <i data-lucide="download"></i> Descargar Datos Locales (JSON)
+                        </button>
+                        <button id="btn-reset-cache" class="btn btn-danger btn-block">
+                            <i data-lucide="trash-2"></i> Limpiar Caché y Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-footer">
+                    <p>TotalAPP v1.2.0</p>
+                    <p>Offline-First Enabled</p>
+                </div>
+            </div>
+        </section>
+        <!-- ==================== ROLE: ADMINISTRADOR VIEWS ==================== -->
+
+        <!-- VIEW: ADMIN DASHBOARD -->
+        <section id="view-admin-dashboard" class="app-view">
+            <div class="dashboard-user-banner" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                <div class="user-avatar" style="background: rgba(255,255,255,0.2);">
+                    <i data-lucide="shield-alert"></i>
+                </div>
+                <div class="user-welcome">
+                    <h3 id="admin-welcome-title">Panel de Control</h3>
+                    <p>Administrador</p>
+                </div>
+            </div>
+
+            <div class="stats-grid-row">
+                <div class="stat-box pending" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;">
+                    <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-total-ventas">$0.00</span>
+                        <span class="lbl">Ventas Totales</span>
+                    </div>
+                </div>
+                <div class="stat-box dispatched" style="background: #e6fcf5; color: #059669; border-color: #a7f3d0;">
+                    <div class="stat-icon"><i data-lucide="check-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-pedidos-despachados">0</span>
+                        <span class="lbl">Despachados</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-grid-row">
+                <div class="stat-box pending" style="background: #fff9db; color: #d97706; border-color: #ffe066;">
+                    <div class="stat-icon"><i data-lucide="clock"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-pedidos-pendientes">0</span>
+                        <span class="lbl">Pendientes</span>
+                    </div>
+                </div>
+                <div class="stat-box canceled" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
+                    <div class="stat-icon"><i data-lucide="users"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-total-vendedores">0</span>
+                        <span class="lbl">Vendedores</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h2>Estado de Pedidos</h2>
+            </div>
+            
+            <div class="summary-card" style="padding: 16px;">
+                <h4 style="margin-bottom:12px; color: var(--text-primary);">Pedidos por Estado</h4>
+                <div style="position: relative; height: 200px; width: 100%;">
+                    <canvas id="chart-pedidos-estado"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN VENDEDORES -->
+        <section id="view-admin-vendedores" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Lista de Vendedores</span>
+                <div style="display:flex; gap:8px;">
+                    <label class="btn btn-outline btn-sm" style="margin:0; cursor:pointer;" title="Importar Excel">
+                        <i data-lucide="upload"></i> Importar
+                        <input type="file" id="file-vendedores-excel" accept=".xlsx" style="display:none;" onchange="App.handleUploadVendedoresExcel(event)">
+                    </label>
+                    <button class="btn btn-primary btn-sm" onclick="App.openVendedorModal()">
+                        <i data-lucide="plus"></i> Nuevo
+                    </button>
+                </div>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="table-vendedores" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">ID</th>
+                                <th style="padding: 12px 16px;">Nombre</th>
+                                <th style="padding: 12px 16px;">Zona</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-vendedores">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN CLIENTES -->
+        <section id="view-admin-clientes" class="app-view">
+            <div class="route-header" style="margin-bottom:16px; flex-wrap: wrap; gap: 8px;">
+                <span>Lista de Comercios</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('input-import-clientes').click()" style="background:#10b981; color:white; border-color:#10b981;">
+                        <i data-lucide="upload-cloud"></i> Importar
+                    </button>
+                    <input type="file" id="input-import-clientes" accept=".xlsx" style="display:none;" onchange="App.importClientesExcel(event)">
+                    <button class="btn btn-primary btn-sm" onclick="App.openClienteAdminModal()">
+                        <i data-lucide="plus"></i> Nuevo
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="admin-cliente-search" placeholder="Buscar comercios...">
+                </div>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="table-clientes" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">Comercio / Encargado</th>
+                                <th style="padding: 12px 16px;">Dirección</th>
+                                <th style="padding: 12px 16px;">Vendedor</th>
+                                <th style="padding: 12px 16px;">Sec.</th>
+                                <th style="padding: 12px 16px;">Estado</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-clientes">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN RUTAS / RECORRIDOS EN MAPA -->
+        <section id="view-admin-rutas" class="app-view">
+            <div class="summary-card" style="padding: 16px; margin-bottom: 12px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="admin-select-vendedor-ruta" style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary);">Ver Recorrido de Vendedor</label>
+                    <select id="admin-select-vendedor-ruta" onchange="App.loadAdminRouteOnMap()" style="width: 100%; padding: 10px; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.1); margin-top: 6px; font-family: var(--font-body); font-size: 0.85rem;">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+            </div>
+            
+            <div id="admin-route-map-container" class="map-wrapper active" style="height: 380px; border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-main); border: 1px solid rgba(0,0,0,0.05); margin-bottom: 16px;">
+                <div id="admin-map" style="height: 100%; width: 100%;"></div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN PRODUCTOS (CATÁLOGO) -->
+        <section id="view-admin-productos" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Catálogo de Productos</span>
+                <div style="display:flex; gap:8px;">
+                    <label class="btn btn-outline btn-sm" style="margin:0; cursor:pointer;" title="Importar Excel">
+                        <i data-lucide="upload"></i> Importar
+                        <input type="file" id="file-productos-excel" accept=".xlsx" style="display:none;" onchange="App.handleUploadProductosExcel(event)">
+                    </label>
+                    <button class="btn btn-primary btn-sm" onclick="App.openProductoModal()">
+                        <i data-lucide="plus"></i> Nuevo
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="admin-producto-search" placeholder="Buscar productos por SKU o nombre...">
+                </div>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="table-productos" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">SKU</th>
+                                <th style="padding: 12px 16px;">Nombre</th>
+                                <th style="padding: 12px 16px;">Precio</th>
+                                <th style="padding: 12px 16px;">Inventario</th>
+                                <th style="padding: 12px 16px;">Estado</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-productos">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN PEDIDOS GLOBALES -->
+        <section id="view-admin-pedidos" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Historial General de Pedidos</span>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="table-pedidos" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">ID/Fecha</th>
+                                <th style="padding: 12px 16px;">Comercio</th>
+                                <th style="padding: 12px 16px;">Vendedor</th>
+                                <th style="padding: 12px 16px;">Total</th>
+                                <th style="padding: 12px 16px;">Estado</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-pedidos">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN USUARIOS -->
+        <section id="view-admin-usuarios" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Gestión de Usuarios de Acceso</span>
+                <button class="btn btn-primary btn-sm" onclick="App.openUsuarioModal()">
+                    <i data-lucide="plus"></i> Nuevo
+                </button>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="table-usuarios" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">Usuario</th>
+                                <th style="padding: 12px 16px;">Rol</th>
+                                <th style="padding: 12px 16px;">Vendedor Asoc.</th>
+                                <th style="padding: 12px 16px;">Clave Pend. Cambio</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-usuarios">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- App Bottom Nav Bar (Hidden by default, shown after login) -->
+    <nav class="app-navbar hidden">
+        <!-- VENDEDOR ACCESIBLE TABS -->
+        <button class="nav-item active role-vendedor-only" data-view="dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Inicio</span>
+        </button>
+        <button class="nav-item role-vendedor-only" data-view="ruta">
+            <i data-lucide="map-pin"></i>
+            <span>Clientes</span>
+        </button>
+        <button class="nav-item role-vendedor-only" data-view="pedidos">
+            <i data-lucide="shopping-bag"></i>
+            <span>Pedidos</span>
+        </button>
+        <button class="nav-item role-vendedor-only" data-view="cartera">
+            <i data-lucide="wallet"></i>
+            <span>Cartera</span>
+        </button>
+
+        <!-- DESPACHO ACCESIBLE TABS -->
+        <button class="nav-item active role-despacho-only" data-view="despacho-dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Inicio</span>
+        </button>
+        <button class="nav-item role-despacho-only" data-view="despacho-certificar">
+            <i data-lucide="shield-check"></i>
+            <span>Certificar</span>
+        </button>
+        <button class="nav-item role-despacho-only" data-view="despacho-inventario">
+            <i data-lucide="layers"></i>
+            <span>Stock</span>
+        </button>
+
+        <!-- ADMIN ACCESIBLE TABS -->
+        <button class="nav-item active role-admin-only" data-view="admin-dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Inicio</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-vendedores">
+            <i data-lucide="users"></i>
+            <span>Vendedores</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-clientes">
+            <i data-lucide="store"></i>
+            <span>Comercios</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-rutas">
+            <i data-lucide="map"></i>
+            <span>Recorridos</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-productos">
+            <i data-lucide="package"></i>
+            <span>Catálogo</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-pedidos">
+            <i data-lucide="shopping-bag"></i>
+            <span>Pedidos</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-usuarios">
+            <i data-lucide="user-cog"></i>
+            <span>Usuarios</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-informes">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Informes</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="cartera">
+            <i data-lucide="wallet"></i>
+            <span>Cartera</span>
+        </button>
+
+        <!-- SHARED CONFIG TAB -->
+        <button class="nav-item" data-view="config">
+            <i data-lucide="settings"></i>
+            <span>Ajustes</span>
+        </button>
+    </nav>
+
+    <!-- Modal: Registrar Abono -->
+    <div id="modal-abono" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Pago / Abono</h3>
+                <button class="btn-close-modal" onclick="App.closeAbonoModal()">×</button>
+            </div>
+            <form id="form-abono" onsubmit="App.handleSaveAbono(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+                <div class="form-group">
+                    <label for="abono-factura" style="font-size:0.72rem; font-weight:700;">Factura *</label>
+                    <select id="abono-factura" required style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <!-- Loaded dynamically based on active client -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="abono-monto" style="font-size:0.72rem; font-weight:700;">Monto a Pagar ($) *</label>
+                    <input type="number" id="abono-monto" required min="1" step="0.01" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                </div>
+                <div class="form-group">
+                    <label for="abono-metodo" style="font-size:0.72rem; font-weight:700;">Método de Pago *</label>
+                    <select id="abono-metodo" required style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <option value="EFECTIVO">Efectivo</option>
+                        <option value="TRANSFERENCIA">Transferencia</option>
+                        <option value="TARJETA">Tarjeta / POS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="abono-notas" style="font-size:0.72rem; font-weight:700;">Notas Adicionales</label>
+                    <textarea id="abono-notas" rows="2" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px;">Registrar Pago</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal overlays for Order details -->
+    <div id="modal-order-details" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-order-code">Detalle del Pedido</h3>
+                <button class="btn-close-modal" onclick="App.closeOrderModal()">×</button>
+            </div>
+            <div id="modal-order-body">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Vendedor Create/Edit -->
+    <div id="modal-admin-vendedor" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-vendedor-title">Nuevo Vendedor</h3>
+                <button class="btn-close-modal" onclick="App.closeVendedorModal()">×</button>
+            </div>
+            <form id="form-admin-vendedor" onsubmit="App.handleSaveVendedor(event)" style="padding-top: 12px;">
+                <input type="hidden" id="admin-vendedor-id">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label for="admin-vendedor-nombre" style="font-size:0.75rem; font-weight:700;">Nombre Completo *</label>
+                    <input type="text" id="admin-vendedor-nombre" required placeholder="Ej. Juan Pérez" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label for="admin-vendedor-zona" style="font-size:0.75rem; font-weight:700;">Zona de Cobertura *</label>
+                    <input type="text" id="admin-vendedor-zona" required placeholder="Ej. Santiago Oriente" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px; background:#6366f1;">Guardar Vendedor</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Cliente Create/Edit -->
+    <div id="modal-admin-cliente" class="modal-overlay hidden">
+        <div class="modal-content" style="max-height:85vh;">
+            <div class="modal-header">
+                <h3 id="modal-cliente-admin-title">Nuevo Comercio</h3>
+                <button class="btn-close-modal" onclick="App.closeClienteAdminModal()">×</button>
+            </div>
+            <form id="form-admin-cliente" onsubmit="App.handleSaveClienteAdmin(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+                <input type="hidden" id="admin-cliente-id">
+                <input type="hidden" id="admin-cliente-uuid">
+                
+                <div class="form-group">
+                    <label for="admin-cliente-codigo" style="font-size:0.72rem; font-weight:700;">Código PDV *</label>
+                    <input type="text" id="admin-cliente-codigo" required placeholder="Ej. PDV007" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                </div>
+                <div class="form-group">
+                    <label for="admin-cliente-nombre" style="font-size:0.72rem; font-weight:700;">Nombre del Comercio *</label>
+                    <input type="text" id="admin-cliente-nombre" required placeholder="Ej. Minimarket Don Lucho" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                </div>
+                <div class="form-group">
+                    <label for="admin-cliente-encargado" style="font-size:0.72rem; font-weight:700;">Nombre del Encargado</label>
+                    <input type="text" id="admin-cliente-encargado" placeholder="Ej. Luis Pérez" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                </div>
+                <div class="form-group" style="position: relative;">
+                    <label for="admin-cliente-direccion" style="font-size:0.72rem; font-weight:700;">Dirección Completa *</label>
+                    <input type="text" id="admin-cliente-direccion" required placeholder="Ej. Av. Providencia 1250" autocomplete="off" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <ul id="admin-cliente-direccion-suggestions" class="autocomplete-suggestions hidden"></ul>
+                </div>
+                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label for="admin-cliente-lat" style="font-size:0.72rem; font-weight:700;">Latitud</label>
+                        <input type="number" step="any" id="admin-cliente-lat" placeholder="-33.43" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-cliente-lng" style="font-size:0.72rem; font-weight:700;">Longitud</label>
+                        <input type="number" step="any" id="admin-cliente-lng" placeholder="-70.62" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:0.72rem; font-weight:700;">Seleccionar en Mapa</label>
+                    <div id="admin-cliente-picker-map" style="height: 180px; width: 100%; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.1); z-index: 1; margin-top: 4px;"></div>
+                </div>
+
+                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label for="admin-cliente-frecuencia" style="font-size:0.72rem; font-weight:700;">Frecuencia</label>
+                        <select id="admin-cliente-frecuencia" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                            <option value="Semanal">Semanal</option>
+                            <option value="Quincenal">Quincenal</option>
+                            <option value="Mensual">Mensual</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-cliente-secuencia" style="font-size:0.72rem; font-weight:700;">Secuencia</label>
+                        <input type="number" id="admin-cliente-secuencia" required value="1" min="1" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="admin-cliente-vendedor" style="font-size:0.72rem; font-weight:700;">Vendedor Asignado</label>
+                    <select id="admin-cliente-vendedor" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group-switch" style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                    <span style="font-size:0.72rem; font-weight:700;">Comercio Activo</span>
+                    <label class="switch">
+                        <input type="checkbox" id="admin-cliente-activo" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background:#6366f1;">Guardar Comercio</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Producto Create/Edit -->
+    <div id="modal-admin-producto" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-producto-title">Nuevo Producto</h3>
+                <button class="btn-close-modal" onclick="App.closeProductoModal()">×</button>
+            </div>
+            <form id="form-admin-producto" onsubmit="App.handleSaveProducto(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+                <input type="hidden" id="admin-producto-id">
+                <div class="form-group">
+                    <label for="admin-producto-sku" style="font-size:0.72rem; font-weight:700;">SKU *</label>
+                    <input type="text" id="admin-producto-sku" required placeholder="Ej. PROD007" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                </div>
+                <div class="form-group">
+                    <label for="admin-producto-nombre" style="font-size:0.72rem; font-weight:700;">Nombre del Producto *</label>
+                    <input type="text" id="admin-producto-nombre" required placeholder="Ej. Fanta 1.5L" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                </div>
+                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label for="admin-producto-precio-directo" style="font-size:0.72rem; font-weight:700;">Precio Directo ($) *</label>
+                        <input type="number" step="0.01" id="admin-producto-precio-directo" required placeholder="1200" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    </div>
+                </div>
+                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label for="admin-producto-precio-distribuidor" style="font-size:0.72rem; font-weight:700;">Precio Dist. ($)</label>
+                        <input type="number" step="0.01" id="admin-producto-precio-distribuidor" placeholder="1000" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-producto-stock" style="font-size:0.72rem; font-weight:700;">Inventario Fábrica</label>
+                        <input type="number" id="admin-producto-stock" value="100" min="0" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    </div>
+                </div>
+                <div class="form-group-switch" style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                    <span style="font-size:0.72rem; font-weight:700;">Disponible en Catálogo</span>
+                    <label class="switch">
+                        <input type="checkbox" id="admin-producto-activo" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background:#6366f1;">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Cambio de Contraseña Obligatorio -->
+    <div id="modal-change-password" class="modal-overlay hidden" style="z-index: 9999; backdrop-filter: blur(10px);">
+        <div class="modal-content" style="max-width: 400px; transform: scale(1);">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <h3 style="color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="key-round" style="color: #d97706;"></i>
+                    Cambio de Clave Obligatorio
+                </h3>
+            </div>
+            <div style="padding: 16px; font-size: 0.85rem; color: var(--text-secondary);">
+                Por motivos de seguridad, debes cambiar tu contraseña inicial antes de continuar utilizando la aplicación.
+            </div>
+            <form id="form-change-password" onsubmit="App.handleChangePassword(event)" style="padding: 0 16px 20px 16px; display: flex; flex-direction: column; gap: 12px;">
+                <div class="form-group">
+                    <label for="change-password-nueva" style="font-size: 0.75rem; font-weight: 700;">Nueva Contraseña *</label>
+                    <input type="password" id="change-password-nueva" required placeholder="Mínimo 4 caracteres" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                </div>
+                <div class="form-group">
+                    <label for="change-password-confirmar" style="font-size: 0.75rem; font-weight: 700;">Confirmar Nueva Contraseña *</label>
+                    <input type="password" id="change-password-confirmar" required placeholder="Repite la contraseña" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background: #d97706; border-color: #d97706;">
+                    Actualizar Contraseña
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Certificación de Despacho -->
+    <div id="modal-certificar-pedido" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Certificar Despacho</h3>
+                <button class="btn-close-modal" onclick="App.closeCertificarModal()">×</button>
+            </div>
+            <form id="form-certificar-pedido" onsubmit="App.handleSaveCertificacion(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+                <input type="hidden" id="certificar-pedido-id">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
+                    <span style="font-weight:700;">Pedido ID:</span> <span id="certificar-pedido-label">#12</span><br>
+                    <span style="font-weight:700;">Cliente/Comercio:</span> <span id="certificar-cliente-label">Don Lucho</span>
+                </div>
+                <div class="form-group">
+                    <label for="certificar-texto" style="font-size:0.75rem; font-weight:700;">Detalles de Certificación (Seriales, Máquinas, Notas) *</label>
+                    <textarea id="certificar-texto" required placeholder="Ej. Despachado máquina modelo X, Serial: MX-998822. Entregado en caja sellada." style="width:100%; height:100px; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px; resize: none;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background:#10b981; border-color:#10b981;">
+                    Certificar y Marcar como Despachado
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Usuario Create/Edit -->
+    <div id="modal-admin-usuario" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-usuario-title">Nuevo Usuario</h3>
+                <button class="btn-close-modal" onclick="App.closeUsuarioModal()">×</button>
+            </div>
+            <form id="form-admin-usuario" onsubmit="App.handleSaveUsuario(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+                <input type="hidden" id="admin-usuario-id">
+                <div class="form-group">
+                    <label for="admin-usuario-username" style="font-size:0.72rem; font-weight:700;">Nombre de Usuario (Username) *</label>
+                    <input type="text" id="admin-usuario-username" required placeholder="Ej. vendedor1" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                </div>
+                <div class="form-group" id="admin-usuario-password-group">
+                    <label for="admin-usuario-password" style="font-size:0.72rem; font-weight:700;">Contraseña *</label>
+                    <input type="password" id="admin-usuario-password" placeholder="Establecer contraseña" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <p class="help-text" id="admin-usuario-password-help" style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">Dejar vacío para mantener contraseña actual.</p>
+                </div>
+                <div class="form-group">
+                    <label for="admin-usuario-rol" style="font-size:0.72rem; font-weight:700;">Rol del Sistema *</label>
+                    <select id="admin-usuario-rol" required onchange="App.handleUserRolChange()" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <option value="vendedor">Vendedor</option>
+                        <option value="despacho">Despacho / Bodega</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="form-group" id="admin-usuario-vendedor-group">
+                    <label for="admin-usuario-vendedor" style="font-size:0.72rem; font-weight:700;">Vendedor Asociado</label>
+                    <select id="admin-usuario-vendedor" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group-switch" style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                    <span style="font-size:0.72rem; font-weight:700;">Fuerza Cambio de Clave</span>
+                    <label class="switch">
+                        <input type="checkbox" id="admin-usuario-debe-cambiar" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background:#6366f1;">Guardar Usuario</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Detalles de Cartera -->
+    <div id="modal-cartera-detalle" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-cartera-title">Estado de Cartera</h3>
+                <button class="btn-close-modal" onclick="document.getElementById('modal-cartera-detalle').classList.add('hidden')">×</button>
+            </div>
+            <div style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+                <div style="background:var(--bg-secondary); border-radius:var(--border-radius-md); padding:16px; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Total Adeudado:</span>
+                        <span id="modal-cartera-total-adeudado" style="font-weight:700; color:var(--danger-color);">$0</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">Vencido (>30d):</span>
+                        <span id="modal-cartera-total-vencido" style="font-weight:700; color:var(--danger-color);">$0</span>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline btn-block" onclick="App.showAbonoModal()">Registrar Pago / Abono</button>
+                
+                <div id="modal-cartera-facturas" style="margin-top:10px; max-height:250px; overflow-y:auto; text-align:left;">
+                    <!-- Cargado dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="toast-notification" class="toast-container">
+        <div class="toast-content">
+            <i data-lucide="check" id="toast-icon"></i>
+            <span id="toast-message">Notificación</span>
+        </div>
+    </div>
+
+    <!-- Leaflet Map JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- jsPDF and AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- App Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/pdf.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

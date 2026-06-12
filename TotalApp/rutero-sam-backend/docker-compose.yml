@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: rutero_sam_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rutero
+      POSTGRES_PASSWORD: rutero123
+      POSTGRES_DB: rutero_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - rutero_sam_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rutero -d rutero_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rutero_sam_postgres_data:
