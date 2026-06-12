@@ -47,8 +47,8 @@ const App = {
     refreshIcons() {
         if (this._iconTimeout) clearTimeout(this._iconTimeout);
         this._iconTimeout = setTimeout(() => {
-            if (typeof lucide !== 'undefined') {
-                this.refreshIcons();
+            if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
             }
         }, 50);
     },

@@ -2010,3 +2010,155 @@ body:not(.role-cliente) .role-cliente-only {
     pointer-events: none;
     display: inline-block;
 }
+
+/* ==================== ICON & MOTION POLISH ==================== */
+.lucide {
+    width: 1em;
+    height: 1em;
+    stroke-width: 2.25;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.btn .lucide,
+.switch-btn .lucide,
+.visit-tab-btn .lucide,
+.nav-item .lucide,
+.admin-action-btn .lucide,
+.btn-back .lucide,
+.login-back-btn .lucide {
+    transition: transform var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.landing-logo .lucide {
+    width: 64px;
+    height: 64px;
+    color: var(--primary-color);
+}
+
+.app-logo .lucide,
+.logo-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.stat-icon .lucide {
+    width: 18px;
+    height: 18px;
+}
+
+.role-btn-card-icon .lucide {
+    width: 22px;
+    height: 22px;
+}
+
+.action-btn-card .lucide {
+    width: 26px;
+    height: 26px;
+}
+
+.client-card-avatar .lucide,
+.client-card-arrow .lucide {
+    width: 18px;
+    height: 18px;
+}
+
+.photo-icon.lucide {
+    width: 36px;
+    height: 36px;
+}
+
+.animate-pulse {
+    animation: soft-pulse 1.9s ease-in-out infinite;
+}
+
+.btn,
+.role-btn-card,
+.action-btn-card,
+.client-card,
+.product-card,
+.order-history-card,
+.admin-action-btn,
+.nav-item,
+.switch-btn,
+.visit-tab-btn {
+    will-change: transform;
+}
+
+.btn:active,
+.role-btn-card:active,
+.action-btn-card:active,
+.client-card:active,
+.product-card:active,
+.order-history-card:active,
+.admin-action-btn:active,
+.switch-btn:active,
+.visit-tab-btn:active {
+    transform: translateY(1px) scale(0.985);
+}
+
+.role-btn-card:hover .role-btn-card-arrow,
+.client-card:hover .client-card-arrow,
+.action-btn-card:hover .lucide,
+.btn:hover .lucide,
+.switch-btn.active .lucide,
+.visit-tab-btn.active .lucide {
+    transform: translateX(2px);
+}
+
+.nav-item.active .lucide {
+    transform: translateY(-2px) scale(1.08);
+}
+
+.stat-box {
+    animation: card-enter 0.28s ease-out both;
+}
+
+.stats-grid-row:nth-of-type(2) .stat-box {
+    animation-delay: 0.05s;
+}
+
+.role-btn-card {
+    animation: card-enter 0.32s ease-out both;
+}
+
+.role-btn-card:nth-of-type(2) {
+    animation-delay: 0.04s;
+}
+
+.role-btn-card:nth-of-type(3) {
+    animation-delay: 0.08s;
+}
+
+@keyframes soft-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.04);
+        opacity: 0.78;
+    }
+}
+
+@keyframes card-enter {
+    from {
+        transform: translateY(8px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
