@@ -948,16 +948,23 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         let total = 0;
         
         for (let pId in this.state.cart) {
-            let item = this.state.cart[pId];
-            let subtotal = item.qty * item.precio;
+            let qty = this.state.cart[pId];
+            let prod = this.state.catalogo.find(p => p.id === parseInt(pId, 10));
+            if (!prod) continue;
+
+            const precioActual = this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor !== null 
+                                ? parseFloat(prod.precio_distribuidor) 
+                                : parseFloat(prod.precio_directo);
+
+            let subtotal = qty * precioActual;
             total += subtotal;
             html += `
                 <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
                     <div>
-                        <div style="font-weight: 500;">${this.escapeHtml(item.nombre)}</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Cant: ${item.qty} x $${item.precio.toLocaleString()}</div>
+                        <div style="font-weight: 500;">${this.escapeHtml(prod.nombre)}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Cant: ${qty} x ${precioActual.toLocaleString()}</div>
                     </div>
-                    <div style="font-weight: 600;">$${subtotal.toLocaleString()}</div>
+                    <div style="font-weight: 600;">${subtotal.toLocaleString()}</div>
                 </li>
             `;
         }
