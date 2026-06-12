@@ -427,6 +427,7 @@ AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-v
 
     openClienteAdminModal(cliente = null) {
         AppModals.inject('modal-admin-cliente');
+        AdminController.populateAdminClientVendedoresSelector();
         document.getElementById('form-admin-cliente').reset();
         document.getElementById('admin-cliente-id').value = '';
         document.getElementById('admin-cliente-uuid').value = '';
