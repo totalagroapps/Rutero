@@ -197,16 +197,17 @@
 
         <!-- VIEW: VENDEDOR RUTA (MAPA Y LISTA DE VISITAS) -->
         <section id="view-ruta" class="app-view">
-            <div class="view-switcher">
-                <button class="switch-btn active" id="btn-show-map"><i data-lucide="map"></i> Mapa</button>
-                <button class="switch-btn" id="btn-show-list"><i data-lucide="list"></i> Lista de Clientes</button>
+            <!-- Fullscreen Map Container -->
+            <div id="route-map-container" class="map-fullscreen">
+                <div id="map" style="width: 100%; height: 100%;"></div>
             </div>
 
-            <div id="route-map-container" class="map-wrapper active">
-                <div id="map"></div>
-            </div>
-
-            <div id="route-list-container" class="list-wrapper">
+            <!-- Bottom Sheet for Client List -->
+            <div id="route-list-container" class="bottom-sheet">
+                <div class="drag-handle-container" id="bottom-sheet-handle">
+                    <div class="drag-handle"></div>
+                </div>
+                
                 <div class="route-header">
                     <span>Lista de Clientes</span>
                     <div style="display: flex; gap: 8px;">
@@ -218,8 +219,11 @@
                         </button>
                     </div>
                 </div>
-                <div id="route-clients-list" class="clients-list">
-                    <!-- Loaded dynamically -->
+
+                <div class="bottom-sheet-content">
+                    <div id="route-clients-list" class="clients-list">
+                        <!-- Loaded dynamically -->
+                    </div>
                 </div>
             </div>
         </section>

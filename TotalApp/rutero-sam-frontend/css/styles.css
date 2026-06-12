@@ -2222,3 +2222,20 @@ body:not(.role-cliente) .role-cliente-only {
   flex: 1;
   padding: 0;
 }
+
+/* Fix for Admin overflowing navbar on mobile */
+body.role-administrador .app-navbar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+body.role-administrador .app-navbar::-webkit-scrollbar {
+    display: none;
+}
+body.role-administrador .nav-item {
+    flex: 0 0 auto;
+    min-width: 72px;
+    padding: 0 4px;
+}
