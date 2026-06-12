@@ -1,4 +1,35 @@
 const AppModals = {
+
+  'modal-confirm-checkout': 
+    <div id="modal-confirm-checkout" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2>Confirmar Pedido</h2>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-confirm-checkout').classList.add('hidden')">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Por favor revisa el resumen del pedido antes de continuar a la firma.</p>
+                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin: 15px 0;">
+                    <ul id="confirm-checkout-items" style="list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto;">
+                        <!-- Items will be injected here -->
+                    </ul>
+                    <hr style="border: none; border-top: 1px dashed var(--border-color); margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.1rem;">
+                        <span>Total:</span>
+                        <span id="confirm-checkout-total"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-confirm-checkout').classList.add('hidden')">Volver al carrito</button>
+                <button type="button" class="btn btn-primary" onclick="App.proceedToCheckout()">Confirmar e ir a Firma</button>
+            </div>
+        </div>
+    </div>
+  ,
+
   'modal-abono': <div id="modal-abono" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">

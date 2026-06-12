@@ -929,6 +929,45 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         this.calculateOrderTotals();
     },
 
+    
+    confirmVisitCheckout() {
+        if (Object.keys(this.state.cart).length === 0) {
+            this.showToast("El carrito est vaco", "error");
+            return;
+        }
+
+        AppModals.inject('modal-confirm-checkout');
+        
+        let html = '';
+        let total = 0;
+        
+        for (let pId in this.state.cart) {
+            let item = this.state.cart[pId];
+            let subtotal = item.qty * item.precio;
+            total += subtotal;
+            html += 
+                <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <div style="font-weight: 500;"></div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Cant:  x {item.precio.toLocaleString()}</div>
+                    </div>
+                    <div style="font-weight: 600;">{subtotal.toLocaleString()}</div>
+                </li>
+            ;
+        }
+        
+        document.getElementById('confirm-checkout-items').innerHTML = html;
+        document.getElementById('confirm-checkout-total').innerText = '$' + total.toLocaleString();
+        
+        document.getElementById('modal-confirm-checkout').classList.remove('hidden');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    proceedToCheckout() {
+        document.getElementById('modal-confirm-checkout').classList.add('hidden');
+        this.setVisitStep('checkout');
+    },
+
     setVisitStep(step) {
         document.querySelectorAll('.visit-tab-btn').forEach(btn => {
             if (btn.getAttribute('data-step') === step) {
