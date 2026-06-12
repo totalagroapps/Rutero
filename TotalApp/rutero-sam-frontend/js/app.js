@@ -1835,18 +1835,23 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         return !buffer.some(color => color !== 0);
     },
 
-    simulatePhoto() {
-        const status = document.getElementById('photo-status');
-        const previewCont = document.getElementById('photo-preview-container');
-        const preview = document.getElementById('photo-preview');
+    handlePhotoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-        const samplePhotoBase64 = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22300%22 height%3D%22150%22 viewBox%3D%220 0 300 150%22%3E%3Crect fill%3D%22%23f3f4f6%22 width%3D%22300%22 height%3D%22150%22%2F%3E%3Cpath fill%3D%22%233b82f6%22 d%3D%22M150 40 L100 90 L200 90 Z%22%2F%3E%3Ctext fill%3D%22%234b5563%22 font-family%3D%22sans-serif%22 font-size%3D%2212%22 x%3D%2250%25%22 y%3D%2280%25%22 text-anchor%3D%22middle%22%3E%5BFoto de Local Simulada%5D%3C%2Ftext%3E%3C%2Fsvg%3E';
-        
-        preview.src = samplePhotoBase64;
-        previewCont.classList.remove('hidden');
-        status.style.display = 'none';
-        
-        this.showToast("Fotografía simulada.");
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const status = document.getElementById('photo-status');
+            const previewCont = document.getElementById('photo-preview-container');
+            const preview = document.getElementById('photo-preview');
+
+            preview.src = e.target.result;
+            previewCont.classList.remove('hidden');
+            status.style.display = 'none';
+
+            this.showToast("Fotografía capturada exitosamente.");
+        };
+        reader.readAsDataURL(file);
     },
 
     removePhoto() {
@@ -1917,10 +1922,16 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
 
         document.getElementById('photo-upload-trigger').addEventListener('click', (e) => {
-            if (e.target.id !== 'btn-remove-photo') {
-                this.simulatePhoto();
+            if (e.target.id !== 'btn-remove-photo' && e.target.id !== 'real-photo-input') {
+                const realInput = document.getElementById('real-photo-input');
+                if (realInput) realInput.click();
             }
         });
+
+        const realPhotoInput = document.getElementById('real-photo-input');
+        if (realPhotoInput) {
+            realPhotoInput.addEventListener('change', (e) => this.handlePhotoUpload(e));
+        }
 
         document.getElementById('btn-remove-photo').addEventListener('click', (e) => {
             e.stopPropagation();

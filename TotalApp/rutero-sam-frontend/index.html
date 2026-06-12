@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -44,7 +44,7 @@
                     </div>
                     <div class="role-btn-card-text">
                         <h3>Vendedor</h3>
-                        <p>Realiza pedidos a clientes y da seguimiento a tus Ã³rdenes.</p>
+                        <p>Realiza pedidos a clientes y da seguimiento a tus ÃƒÂ³rdenes.</p>
                     </div>
                 </div>
                 <i data-lucide="chevron-right" class="role-btn-card-arrow"></i>
@@ -57,7 +57,7 @@
                     </div>
                     <div class="role-btn-card-text">
                         <h3>Despacho / Bodega</h3>
-                        <p>Actualiza stock de terminado y certifica mÃ¡quinas despachadas.</p>
+                        <p>Actualiza stock de terminado y certifica mÃƒÂ¡quinas despachadas.</p>
                     </div>
                 </div>
                 <i data-lucide="chevron-right" class="role-btn-card-arrow"></i>
@@ -70,7 +70,7 @@
                     </div>
                     <div class="role-btn-card-text">
                         <h3>Administrador</h3>
-                        <p>Gestiona vendedores, comercios, catÃ¡logo de productos y verifica rutas en mapa.</p>
+                        <p>Gestiona vendedores, comercios, catÃƒÂ¡logo de productos y verifica rutas en mapa.</p>
                     </div>
                 </div>
                 <i data-lucide="chevron-right" class="role-btn-card-arrow"></i>
@@ -88,7 +88,7 @@
             <div class="login-header">
                 <i data-lucide="lock" id="login-role-icon"></i>
                 <h2>Bienvenido de nuevo</h2>
-                <p>Inicia sesiÃ³n para continuar</p>
+                <p>Inicia sesiÃƒÂ³n para continuar</p>
             </div>
             
             <form id="login-form" onsubmit="App.handleLogin(event)">
@@ -97,8 +97,8 @@
                     <input type="text" id="login-username" placeholder="Nombre de usuario" required>
                 </div>
                 <div class="form-group" id="password-group">
-                    <label for="login-password">ContraseÃ±a</label>
-                    <input type="password" id="login-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                    <label for="login-password">ContraseÃƒÂ±a</label>
+                    <input type="password" id="login-password" placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 24px;">Ingresar</button>
             </form>
@@ -140,7 +140,7 @@
                     <i data-lucide="user"></i>
                 </div>
                 <div class="user-welcome">
-                    <h3 id="vendedor-welcome-title">Hola, Samuel PÃ©rez</h3>
+                    <h3 id="vendedor-welcome-title">Hola, Samuel PÃƒÂ©rez</h3>
                     <p>Vendedor</p>
                 </div>
             </div>
@@ -180,7 +180,7 @@
             </div>
 
             <div class="section-title">
-                <h2>Acciones rÃ¡pidas</h2>
+                <h2>Acciones rÃƒÂ¡pidas</h2>
             </div>
             <div class="quick-actions-box">
                 <div class="action-btn-card" onclick="App.navigateToView('ruta')">
@@ -343,7 +343,7 @@
 
                     <div class="form-group">
                         <label for="no-sale-notes">Comentarios Adicionales</label>
-                        <textarea id="no-sale-notes" placeholder="Escribe notas sobre por quÃ© no se realizÃ³ la venta..."></textarea>
+                        <textarea id="no-sale-notes" placeholder="Escribe notas sobre por quÃƒÂ© no se realizÃƒÂ³ la venta..."></textarea>
                     </div>
                     
                     <button type="button" class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="App.completeVisit()">Registrar Novedad</button>
@@ -366,10 +366,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label>FotografÃ­a de Respaldo (Opcional)</label>
+                        <label>FotografÃƒÂ­a de Respaldo (Opcional)</label>
                         <div class="photo-upload-box" id="photo-upload-trigger">
                             <i data-lucide="camera" class="photo-icon"></i>
-                            <span id="photo-status">Haga clic para simular foto</span>
+                            <span id="photo-status">Tocar para abrir cámara</span>`n                            <input type="file" id="real-photo-input" accept="image/*" capture="environment" class="hidden">
                             <div id="photo-preview-container" class="hidden">
                                 <img id="photo-preview" src="" alt="Respaldo">
                                 <button type="button" id="btn-remove-photo" class="btn btn-danger btn-xs">Quitar</button>
@@ -407,7 +407,7 @@
             <div class="search-bar-container">
                 <div class="search-box">
                     <i data-lucide="search" class="search-icon"></i>
-                    <input type="text" id="cartera-main-search" placeholder="Buscar cliente por nombre o cÃ³digo..." oninput="App.renderMainCartera()">
+                    <input type="text" id="cartera-main-search" placeholder="Buscar cliente por nombre o cÃƒÂ³digo..." oninput="App.renderMainCartera()">
                 </div>
             </div>
             <div class="summary-card" style="padding:16px; margin-bottom:12px;">
@@ -426,7 +426,7 @@
                 </button>
                 <div class="visit-client-title">
                     <h2>Registrar Nuevo Comercio</h2>
-                    <span style="color: var(--text-secondary);">Ingresa la informaciÃ³n del punto de venta</span>
+                    <span style="color: var(--text-secondary);">Ingresa la informaciÃƒÂ³n del punto de venta</span>
                 </div>
             </div>
 
@@ -434,7 +434,7 @@
                 <form id="add-client-form" onsubmit="App.handleSaveCliente(event)">
                     <div class="form-group">
                         <label for="new-client-name">Nombre del Comercio / Local *</label>
-                        <input type="text" id="new-client-name" required placeholder="Ej. AlmacÃ©n Los Aromos">
+                        <input type="text" id="new-client-name" required placeholder="Ej. AlmacÃƒÂ©n Los Aromos">
                     </div>
                     
                     <div class="form-group">
@@ -443,14 +443,14 @@
                     </div>
 
                     <div class="form-group" style="position: relative;">
-                        <label for="new-client-direccion">DirecciÃ³n Completa *</label>
+                        <label for="new-client-direccion">DirecciÃƒÂ³n Completa *</label>
                         <input type="text" id="new-client-direccion" required placeholder="Ej. Calle Principal 123, Local B" autocomplete="off">
                         <ul id="new-client-direccion-suggestions" class="autocomplete-suggestions hidden"></ul>
                     </div>
 
                     <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group">
-                            <label for="new-client-codigo">CÃ³digo PDV *</label>
+                            <label for="new-client-codigo">CÃƒÂ³digo PDV *</label>
                             <input type="text" id="new-client-codigo" required placeholder="Ej. PDV007">
                         </div>
                         <div class="form-group">
@@ -472,7 +472,7 @@
                     <div class="gps-capture-card" style="background: #f8f9fa; border: 1px dashed rgba(0,0,0,0.12); border-radius: var(--border-radius-md); padding: 16px; margin: 16px 0;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                             <span style="font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="map-pin" style="color: var(--primary-color); width: 16px; height: 16px;"></i> UbicaciÃ³n GeogrÃ¡fica (GPS)
+                                <i data-lucide="map-pin" style="color: var(--primary-color); width: 16px; height: 16px;"></i> UbicaciÃƒÂ³n GeogrÃƒÂ¡fica (GPS)
                             </span>
                             <span id="gps-capture-badge" class="status-badge critical" style="font-size: 0.65rem; padding: 2px 8px; border-radius: 20px;">Sin ubicar</span>
                         </div>
@@ -489,7 +489,7 @@
                         </div>
 
                         <button type="button" id="btn-capture-gps" class="btn btn-secondary btn-block btn-sm" onclick="App.captureClientGps()">
-                            <i data-lucide="locate"></i> Capturar UbicaciÃ³n Actual
+                            <i data-lucide="locate"></i> Capturar UbicaciÃƒÂ³n Actual
                         </button>
 
                         <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
@@ -516,7 +516,7 @@
                 </div>
                 <div class="user-welcome">
                     <h3 id="despacho-welcome-title">Bodega y Despachos</h3>
-                    <p>MÃ³dulo de Despacho</p>
+                    <p>MÃƒÂ³dulo de Despacho</p>
                 </div>
             </div>
 
@@ -555,7 +555,7 @@
         <!-- VIEW: DESPACHO INVENTARIO (CONTROL DE STOCK) -->
         <section id="view-despacho-inventario" class="app-view">
             <div class="route-header" style="margin-bottom:16px;">
-                <span>Control de Inventario de FÃ¡brica</span>
+                <span>Control de Inventario de FÃƒÂ¡brica</span>
             </div>
             <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
                 <div class="search-box">
@@ -585,7 +585,7 @@
         <!-- VIEW: DESPACHO CERTIFICAR PEDIDOS -->
         <section id="view-despacho-certificar" class="app-view">
             <div class="route-header" style="margin-bottom:16px;">
-                <span>CertificaciÃ³n de MÃ¡quinas Despachadas</span>
+                <span>CertificaciÃƒÂ³n de MÃƒÂ¡quinas Despachadas</span>
             </div>
             <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
                 <div class="search-box">
@@ -601,8 +601,8 @@
                                 <th style="padding: 12px 16px;">Pedido</th>
                                 <th style="padding: 12px 16px;">Comercio</th>
                                 <th style="padding: 12px 16px;">Fecha</th>
-                                <th style="padding: 12px 16px;">CertificaciÃ³n / Estado</th>
-                                <th style="padding: 12px 16px; text-align: right;">AcciÃ³n</th>
+                                <th style="padding: 12px 16px;">CertificaciÃƒÂ³n / Estado</th>
+                                <th style="padding: 12px 16px; text-align: right;">AcciÃƒÂ³n</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-despacho-pedidos">
@@ -617,7 +617,7 @@
         <section id="view-admin-informes" class="app-view">
             <div style="padding: 16px;">
                 <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 12px; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px;">
-                    Informes Detallados y AnalÃ­tica
+                    Informes Detallados y AnalÃƒÂ­tica
                 </h2>
                 
                 <div class="summary-card" style="padding: 16px; margin-bottom: 16px; background:#f9fafb;">
@@ -633,10 +633,10 @@
                             <option value="5">5. Clientes activos vs inactivos</option>
                             <option value="6">6. Nuevos clientes captados</option>
                             <option value="7">7. Riesgo de abandono</option>
-                            <option value="8">8. Cobertura geogrÃ¡fica</option>
+                            <option value="8">8. Cobertura geogrÃƒÂ¡fica</option>
                             <option value="9">9. Pedidos por estado</option>
-                            <option value="10">10. Productos mÃ¡s vendidos</option>
-                            <option value="11">11. Baja rotaciÃ³n</option>
+                            <option value="10">10. Productos mÃƒÂ¡s vendidos</option>
+                            <option value="11">11. Baja rotaciÃƒÂ³n</option>
                             <option value="12">12. Devoluciones y cancelaciones</option>
                             <option value="13">13. Cartera por vendedor</option>
                             <option value="14">14. Cobranza realizada</option>
@@ -646,7 +646,7 @@
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                         <div class="form-group" style="margin-bottom:0;">
-                            <label style="font-size:0.75rem; font-weight:600;">PerÃ­odo</label>
+                            <label style="font-size:0.75rem; font-weight:600;">PerÃƒÂ­odo</label>
                             <select id="informe-periodo" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;" onchange="App.toggleRangoFechas()">
                                 <option value="hoy">Hoy</option>
                                 <option value="semana">Esta Semana</option>
@@ -655,10 +655,10 @@
                             </select>
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
-                            <label style="font-size:0.75rem; font-weight:600;">Filtro EspecÃ­fico</label>
+                            <label style="font-size:0.75rem; font-weight:600;">Filtro EspecÃƒÂ­fico</label>
                             <select id="informe-filtro-entidad" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;">
                                 <option value="todos">Todos los Vendedores / Zonas</option>
-                                <!-- Se llenarÃ¡ dinÃ¡micamente con vendedores -->
+                                <!-- Se llenarÃƒÂ¡ dinÃƒÂ¡micamente con vendedores -->
                             </select>
                         </div>
                     </div>
@@ -694,7 +694,7 @@
                     <div style="background:var(--bg-secondary); border-left: 4px solid var(--primary-color); padding:12px; margin-bottom:16px; border-radius:4px;">
                         <p style="font-size:0.85rem; font-weight:600; margin-bottom:4px;">Resumen Ejecutivo:</p>
                         <p id="informe-resumen-ejecutivo" style="font-size:0.82rem; color:var(--text-secondary); line-height:1.4;">
-                            <!-- MÃ¡ximo 3 lÃ­neas inyectadas por JS -->
+                            <!-- MÃƒÂ¡ximo 3 lÃƒÂ­neas inyectadas por JS -->
                         </p>
                     </div>
 
@@ -702,10 +702,10 @@
                     <div style="overflow-x:auto; border-radius:4px; border:1px solid rgba(0,0,0,0.05); margin-bottom:16px;">
                         <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
                             <thead id="informe-tabla-head">
-                                <!-- DinÃ¡mico -->
+                                <!-- DinÃƒÂ¡mico -->
                             </thead>
                             <tbody id="informe-tabla-body">
-                                <!-- DinÃ¡mico -->
+                                <!-- DinÃƒÂ¡mico -->
                             </tbody>
                         </table>
                     </div>
@@ -728,29 +728,29 @@
 
                 <div class="settings-group role-administrador-only">
                     <h3>Utilidades de Administrador</h3>
-                    <p class="help-text" style="margin-bottom: 12px;">Herramientas avanzadas para la gestiÃ³n del sistema.</p>
+                    <p class="help-text" style="margin-bottom: 12px;">Herramientas avanzadas para la gestiÃƒÂ³n del sistema.</p>
                     <div class="settings-actions">
-                        <button id="btn-admin-force-sync" class="btn btn-primary btn-block" onclick="App.syncWithBackend(); App.showToast('Forzando sincronizaciÃ³n maestra...');">
-                            <i data-lucide="refresh-cw"></i> SincronizaciÃ³n Forzada
+                        <button id="btn-admin-force-sync" class="btn btn-primary btn-block" onclick="App.syncWithBackend(); App.showToast('Forzando sincronizaciÃƒÂ³n maestra...');">
+                            <i data-lucide="refresh-cw"></i> SincronizaciÃƒÂ³n Forzada
                         </button>
                     </div>
                 </div>
 
                 <div class="settings-group role-vendedor-only">
-                    <h3>UbicaciÃ³n GPS</h3>
-                    <p class="help-text" style="margin-bottom: 12px;">La app usa el GPS de tu dispositivo para mostrarte en el mapa y calcular rutas. AsegÃºrate de permitir el acceso a la ubicaciÃ³n cuando el navegador lo solicite.</p>
-                    <button id="btn-recenter-gps" class="btn btn-secondary btn-block" onclick="App.updateUserCoords(); App.showToast('Actualizando ubicaciÃ³n...');">
-                        <i data-lucide="locate"></i> Centrar mapa en mi ubicaciÃ³n
+                    <h3>UbicaciÃƒÂ³n GPS</h3>
+                    <p class="help-text" style="margin-bottom: 12px;">La app usa el GPS de tu dispositivo para mostrarte en el mapa y calcular rutas. AsegÃƒÂºrate de permitir el acceso a la ubicaciÃƒÂ³n cuando el navegador lo solicite.</p>
+                    <button id="btn-recenter-gps" class="btn btn-secondary btn-block" onclick="App.updateUserCoords(); App.showToast('Actualizando ubicaciÃƒÂ³n...');">
+                        <i data-lucide="locate"></i> Centrar mapa en mi ubicaciÃƒÂ³n
                     </button>
                 </div>
 
                 <div class="settings-group">
-                    <h3>PWA - InstalaciÃ³n</h3>
+                    <h3>PWA - InstalaciÃƒÂ³n</h3>
                     <div class="settings-actions">
                         <button id="btn-install-pwa" class="btn btn-success btn-block" style="display:none;">
                             <i data-lucide="download-cloud"></i> Descargar App en Celular
                         </button>
-                        <p id="pwa-install-help-text" class="help-text">Instala TotalAPP en la pantalla de inicio para acceso rÃ¡pido en pantalla completa y soporte sin conexiÃ³n.</p>
+                        <p id="pwa-install-help-text" class="help-text">Instala TotalAPP en la pantalla de inicio para acceso rÃƒÂ¡pido en pantalla completa y soporte sin conexiÃƒÂ³n.</p>
                     </div>
                 </div>
 
@@ -760,9 +760,9 @@
                         Para instalar esta app en tu dispositivo iOS:
                     </p>
                     <ol class="help-text" style="padding-left: 16px; display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); line-height: 1.4;">
-                        <li>Abre esta pÃ¡gina en el navegador <b>Safari</b>.</li>
-                        <li>Presiona el botÃ³n de <b>Compartir</b> <i data-lucide="share" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> en la barra inferior.</li>
-                        <li>Busca y selecciona la opciÃ³n <b>"Agregar a Inicio"</b>.</li>
+                        <li>Abre esta pÃƒÂ¡gina en el navegador <b>Safari</b>.</li>
+                        <li>Presiona el botÃƒÂ³n de <b>Compartir</b> <i data-lucide="share" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> en la barra inferior.</li>
+                        <li>Busca y selecciona la opciÃƒÂ³n <b>"Agregar a Inicio"</b>.</li>
                     </ol>
                 </div>
 
@@ -773,7 +773,7 @@
                             <i data-lucide="download"></i> Descargar Datos Locales (JSON)
                         </button>
                         <button id="btn-reset-cache" class="btn btn-danger btn-block">
-                            <i data-lucide="trash-2"></i> Limpiar CachÃ© y Cerrar SesiÃ³n
+                            <i data-lucide="trash-2"></i> Limpiar CachÃƒÂ© y Cerrar SesiÃƒÂ³n
                         </button>
                     </div>
                 </div>
@@ -906,7 +906,7 @@
                         <thead>
                             <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
                                 <th style="padding: 12px 16px;">Comercio / Encargado</th>
-                                <th style="padding: 12px 16px;">DirecciÃ³n</th>
+                                <th style="padding: 12px 16px;">DirecciÃƒÂ³n</th>
                                 <th style="padding: 12px 16px;">Vendedor</th>
                                 <th style="padding: 12px 16px;">Sec.</th>
                                 <th style="padding: 12px 16px;">Estado</th>
@@ -937,10 +937,10 @@
             </div>
         </section>
 
-        <!-- VIEW: ADMIN PRODUCTOS (CATÃLOGO) -->
+        <!-- VIEW: ADMIN PRODUCTOS (CATÃƒÂLOGO) -->
         <section id="view-admin-productos" class="app-view">
             <div class="route-header" style="margin-bottom:16px;">
-                <span>CatÃ¡logo de Productos</span>
+                <span>CatÃƒÂ¡logo de Productos</span>
                 <div style="display:flex; gap:8px;">
                     <label class="btn btn-outline btn-sm" style="margin:0; cursor:pointer;" title="Importar Excel">
                         <i data-lucide="upload"></i> Importar
@@ -1010,7 +1010,7 @@
         <!-- VIEW: ADMIN USUARIOS -->
         <section id="view-admin-usuarios" class="app-view">
             <div class="route-header" style="margin-bottom:16px;">
-                <span>GestiÃ³n de Usuarios de Acceso</span>
+                <span>GestiÃƒÂ³n de Usuarios de Acceso</span>
                 <button class="btn btn-primary btn-sm" onclick="App.openUsuarioModal()">
                     <i data-lucide="plus"></i> Nuevo
                 </button>
@@ -1090,7 +1090,7 @@
         </button>
         <button class="nav-item role-admin-only" data-view="admin-productos">
             <i data-lucide="package"></i>
-            <span>CatÃ¡logo</span>
+            <span>CatÃƒÂ¡logo</span>
         </button>
         <button class="nav-item role-admin-only" data-view="admin-pedidos">
             <i data-lucide="shopping-bag"></i>
@@ -1131,10 +1131,10 @@
     <!-- Modal: Producto Create/Edit -->
     
 
-    <!-- Modal: Cambio de ContraseÃ±a Obligatorio -->
+    <!-- Modal: Cambio de ContraseÃƒÂ±a Obligatorio -->
     
 
-    <!-- Modal: CertificaciÃ³n de Despacho -->
+    <!-- Modal: CertificaciÃƒÂ³n de Despacho -->
     
 
     <!-- Modal: Usuario Create/Edit -->
@@ -1147,7 +1147,7 @@
     <div id="toast-notification" class="toast-container">
         <div class="toast-content">
             <i data-lucide="check" id="toast-icon"></i>
-            <span id="toast-message">NotificaciÃ³n</span>
+            <span id="toast-message">NotificaciÃƒÂ³n</span>
         </div>
     </div>
 
@@ -1172,4 +1172,5 @@
     <script src="js/app.js"></script>
 </body>
 </html>
+
 
