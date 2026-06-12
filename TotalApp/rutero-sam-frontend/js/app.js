@@ -1613,6 +1613,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
     // ==================== ORDER DETAIL MODALS ====================
     openOrderModal(order) {
         AppModals.inject('modal-order-details');
+        AppModals.inject('modal-order-details');
         AppModals.inject('modal-order-details'); const modal = document.getElementById('modal-order-details');
         AppModals.inject('modal-order-code');
         AppModals.inject('modal-order-code'); const codeEl = document.getElementById('modal-order-code');
@@ -2658,6 +2659,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
     // Vendedores Modals & CRUD
     openVendedorModal(vendedor = null) {
+        AppModals.inject('modal-admin-vendedor');
         document.getElementById('form-admin-vendedor').reset();
         document.getElementById('admin-vendedor-id').value = '';
         
@@ -2729,6 +2731,7 @@ AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-v
     },
 
     openClienteAdminModal(cliente = null) {
+        AppModals.inject('modal-admin-cliente');
         document.getElementById('form-admin-cliente').reset();
         document.getElementById('admin-cliente-id').value = '';
         document.getElementById('admin-cliente-uuid').value = '';
@@ -2823,6 +2826,7 @@ AppModals.inject('modal-admin-cliente'); document.getElementById('modal-admin-cl
 
     // Productos Modals & CRUD
     openProductoModal(prod = null) {
+        AppModals.inject('modal-admin-producto');
         document.getElementById('form-admin-producto').reset();
         document.getElementById('admin-producto-id').value = prod ? prod.id : '';
         document.getElementById('admin-producto-sku').value = prod ? prod.sku : '';
@@ -3030,6 +3034,7 @@ AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-p
     },
 
     openCertificarModal(pedidoId, clienteNombre) {
+        AppModals.inject('modal-certificar-pedido');
         document.getElementById('certificar-pedido-id').value = pedidoId;
         document.getElementById('certificar-pedido-label').innerText = `#PED-${pedidoId}`;
         document.getElementById('certificar-cliente-label').innerText = clienteNombre;
@@ -3121,6 +3126,7 @@ AppModals.inject('modal-certificar-pedido'); document.getElementById('modal-cert
     },
 
     openUsuarioModal(usuario = null) {
+        AppModals.inject('modal-admin-usuario');
         document.getElementById('form-admin-usuario').reset();
         document.getElementById('admin-usuario-id').value = '';
         document.getElementById('admin-usuario-debe-cambiar').checked = true;
