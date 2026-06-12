@@ -733,6 +733,10 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             this.state.catalogo = catalogoData;
             localStorage.setItem('sam_cache_catalogo', JSON.stringify(catalogoData));
 
+            // Record last successful sync timestamp
+            localStorage.setItem('sam_last_sync', new Date().toLocaleString());
+            this.updateSyncBadge();
+
             this.populateClientLoginSelector();
 
             // Refresh header welcome text if seller is logged in
@@ -2100,11 +2104,18 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         const clientCount = this.state.unsyncedClientes ? this.state.unsyncedClientes.length : 0;
         const count = orderCount + clientCount;
         const badge = document.getElementById('sync-badge');
+        const syncBtn = document.getElementById('sync-button');
+
         if (count > 0) {
             badge.innerText = count.toString();
             badge.classList.add('show');
         } else {
             badge.classList.remove('show');
+        }
+
+        const lastSync = localStorage.getItem('sam_last_sync');
+        if (syncBtn) {
+            syncBtn.title = lastSync ? `Última sincronización: ${lastSync} | Pendientes: ${count}` : `Sincronizar (Pendientes: ${count})`;
         }
     },
 
