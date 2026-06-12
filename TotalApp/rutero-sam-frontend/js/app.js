@@ -232,11 +232,13 @@ const App = {
         try {
             const cartera = await ApiClient.getCarteraCliente(clientId);
             
-            AppModals.inject('modal-cartera-total-adeudado'); document.getElementById('modal-cartera-total-adeudado').innerText = `$${cartera.total_adeudado.toLocaleString('es-CO')}`;
-            AppModals.inject('modal-cartera-total-vencido'); document.getElementById('modal-cartera-total-vencido').innerText = `$${cartera.total_vencido.toLocaleString('es-CO')}`;
+            // Inyectar el modal base PRIMERO
+            AppModals.inject('modal-cartera-detalle');
             
-            AppModals.inject('modal-cartera-facturas');
-        AppModals.inject('modal-cartera-facturas'); const listContainer = document.getElementById('modal-cartera-facturas');
+            document.getElementById('modal-cartera-total-adeudado').innerText = `${cartera.total_adeudado.toLocaleString('es-CO')}`;
+            document.getElementById('modal-cartera-total-vencido').innerText = `${cartera.total_vencido.toLocaleString('es-CO')}`;
+            
+            const listContainer = document.getElementById('modal-cartera-facturas');
             listContainer.innerHTML = '';
             
             if (cartera.facturas && cartera.facturas.length > 0) {
@@ -250,8 +252,8 @@ const App = {
                             </div>
                             <div style="color:var(--text-secondary); margin-bottom:4px;">Vence: ${new Date(f.fecha_vencimiento).toLocaleDateString('es-CO')}</div>
                             <div style="display:flex; justify-content:space-between;">
-                                <span>Total: $${f.monto_total.toLocaleString('es-CO')}</span>
-                                <strong class="text-danger">Saldo: $${f.saldo_pendiente.toLocaleString('es-CO')}</strong>
+                                <span>Total: ${f.monto_total.toLocaleString('es-CO')}</span>
+                                <strong class="text-danger">Saldo: ${f.saldo_pendiente.toLocaleString('es-CO')}</strong>
                             </div>
                         </div>
                     `;
@@ -260,8 +262,7 @@ const App = {
                 listContainer.innerHTML = '<p style="text-align:center; color:var(--text-secondary); font-size:0.9rem; padding:10px;">No hay facturas pendientes.</p>';
             }
             
-            AppModals.inject('modal-cartera-detalle');
-AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-cartera-detalle').classList.remove('hidden');
+            document.getElementById('modal-cartera-detalle').classList.remove('hidden');
         } catch (err) {
             console.error(err);
             this.showToast("Error al cargar la cartera", true);
