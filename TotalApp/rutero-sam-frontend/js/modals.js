@@ -1,7 +1,7 @@
 const AppModals = {
 
-  'modal-confirm-checkout': 
-    <div id="modal-confirm-checkout" class="modal-overlay hidden">
+  'modal-confirm-checkout': `
+<div id="modal-confirm-checkout" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header">
                 <h2>Confirmar Pedido</h2>
@@ -28,9 +28,10 @@ const AppModals = {
             </div>
         </div>
     </div>
-  ,
+`,
 
-  'modal-abono': <div id="modal-abono" class="modal-overlay hidden">
+  'modal-abono': `
+<div id="modal-abono" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Registrar Pago / Abono</h3>
@@ -62,8 +63,10 @@ const AppModals = {
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px;">Registrar Pago</button>
             </form>
         </div>
-    </div>,
-  'modal-order-details': <div id="modal-order-details" class="modal-overlay hidden">
+    </div>
+`,
+  'modal-order-details': `
+<div id="modal-order-details" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-order-code">Detalle del Pedido</h3>
@@ -73,8 +76,10 @@ const AppModals = {
                 <!-- Loaded dynamically -->
             </div>
         </div>
-    </div>,
-  'modal-admin-vendedor': <div id="modal-admin-vendedor" class="modal-overlay hidden">
+    </div>
+`,
+  'modal-admin-vendedor': `
+<div id="modal-admin-vendedor" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-vendedor-title">Nuevo Vendedor</h3>
@@ -93,8 +98,10 @@ const AppModals = {
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px; background:#6366f1;">Guardar Vendedor</button>
             </form>
         </div>
-    </div>,
-  'modal-admin-cliente': <div id="modal-admin-cliente" class="modal-overlay hidden">
+    </div>
+`,
+  'modal-admin-cliente': `
+<div id="modal-admin-cliente" class="modal-overlay hidden">
         <div class="modal-content" style="max-height:85vh;">
             <div class="modal-header">
                 <h3 id="modal-cliente-admin-title">Nuevo Comercio</h3>
@@ -174,8 +181,10 @@ const AppModals = {
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background:#6366f1;">Guardar Comercio</button>
             </form>
         </div>
-    </div>,
-  'modal-admin-producto': <div id="modal-admin-producto" class="modal-overlay hidden">
+    </div>
+`,
+  'modal-admin-producto': `
+<div id="modal-admin-producto" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-producto-title">Nuevo Producto</h3>
@@ -217,8 +226,10 @@ const AppModals = {
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background:#6366f1;">Guardar Producto</button>
             </form>
         </div>
-    </div>,
-  'modal-change-password': <div id="modal-change-password" class="modal-overlay hidden" style="z-index: 9999; backdrop-filter: blur(10px);">
+    </div>
+`,
+  'modal-change-password': `
+<div id="modal-change-password" class="modal-overlay hidden" style="z-index: 9999; backdrop-filter: blur(10px);">
         <div class="modal-content" style="max-width: 400px; transform: scale(1);">
             <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
                 <h3 style="color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
@@ -243,8 +254,10 @@ const AppModals = {
                 </button>
             </form>
         </div>
-    </div>,
-  'modal-certificar-pedido': <div id="modal-certificar-pedido" class="modal-overlay hidden">
+    </div>
+`,
+  'modal-certificar-pedido': `
+<div id="modal-certificar-pedido" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Certificar Despacho</h3>
@@ -265,8 +278,10 @@ const AppModals = {
                 </button>
             </form>
         </div>
-    </div>,
-  'modal-admin-usuario': <div id="modal-admin-usuario" class="modal-overlay hidden">
+    </div>
+`,
+  'modal-admin-usuario': `
+<div id="modal-admin-usuario" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-usuario-title">Nuevo Usuario</h3>
@@ -307,8 +322,10 @@ const AppModals = {
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background:#6366f1;">Guardar Usuario</button>
             </form>
         </div>
-    </div>,
-  'modal-cartera-detalle': <div id="modal-cartera-detalle" class="modal-overlay hidden">
+    </div>
+`,
+  'modal-cartera-detalle': `
+<div id="modal-cartera-detalle" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-cartera-title">Estado de Cartera</h3>
@@ -333,7 +350,8 @@ const AppModals = {
                 </div>
             </div>
         </div>
-    </div>,
+    </div>
+`,
 
   inject(id) {
     if (!document.getElementById(id) && this[id]) {

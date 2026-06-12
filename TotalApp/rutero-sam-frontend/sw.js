@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sam-rutero-cache-v8';
+﻿const CACHE_NAME = 'sam-rutero-cache-v9';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -55,7 +55,7 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .then((response) => {
           // If response is valid, clone it and put in cache for offline backup
-          if (response.ok) {
+          if (response.ok && event.request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseClone);
@@ -79,7 +79,7 @@ self.addEventListener('fetch', (event) => {
         if (cachedResponse) {
           // Serve from cache, and fetch in background to refresh
           fetch(event.request).then((networkResponse) => {
-            if (networkResponse.ok) {
+            if (networkResponse.ok && event.request.method === 'GET') {
               caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
             }
           });
@@ -87,7 +87,7 @@ self.addEventListener('fetch', (event) => {
         }
 
         return fetch(event.request).then((networkResponse) => {
-          if (networkResponse.ok) {
+          if (networkResponse.ok && event.request.method === 'GET') {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           }
@@ -105,7 +105,7 @@ self.addEventListener('fetch', (event) => {
         // Fetch background update to keep cache fresh
         fetch(event.request)
           .then((networkResponse) => {
-            if (networkResponse.ok) {
+            if (networkResponse.ok && event.request.method === 'GET') {
               caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
             }
           })
@@ -129,3 +129,4 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
