@@ -1299,7 +1299,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
         canvas.addEventListener('touchend', () => this.signaturePad.isDrawing = false);
 
-        document.getElementById('btn-clear-signature').addEventListener('click', () => this.clearSignature());
+        const btnCSig = document.getElementById('btn-clear-signature'); if(btnCSig) btnCSig.addEventListener('click', () => this.clearSignature());
     },
 
     getCanvasPos(evt) {
@@ -1384,7 +1384,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
     initUIEventListeners() {
         this.initAddressAutocomplete();
-        document.getElementById('sync-button').addEventListener('click', () => this.syncWithBackend());
+        const btnSync = document.getElementById('sync-button'); if(btnSync) btnSync.addEventListener('click', () => this.syncWithBackend());
 
         // UX Phase 2: Bottom Sheet Toggle Logic
         const bottomSheetHandle = document.getElementById('bottom-sheet-handle');
@@ -1449,7 +1449,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             realPhotoInput.addEventListener('change', (e) => this.handlePhotoUpload(e));
         }
 
-        document.getElementById('btn-remove-photo').addEventListener('click', (e) => {
+        const btnRPh = document.getElementById('btn-remove-photo'); if(btnRPh) btnRPh.addEventListener('click', (e) => {
             e.stopPropagation();
             this.removePhoto();
         });
