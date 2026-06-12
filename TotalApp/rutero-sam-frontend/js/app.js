@@ -1811,7 +1811,6 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
         // Handle Android/Chrome Install Prompt
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
             this.deferredInstallPrompt = e;
             
             const installBtn = document.getElementById('btn-install-pwa');
