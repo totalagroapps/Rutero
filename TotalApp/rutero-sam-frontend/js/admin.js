@@ -22,10 +22,10 @@ const AdminController = {
         try {
             const stats = await ApiClient.getAdminStats();
             
-            document.getElementById('admin-total-ventas').innerText = `$${parseFloat(stats.total_ventas).toLocaleString('es-CO', { minimumFractionDigits: 2 })}`;
-            document.getElementById('admin-pedidos-despachados').innerText = stats.pedidos_despachados;
-            document.getElementById('admin-pedidos-pendientes').innerText = stats.pedidos_pendientes;
-            document.getElementById('admin-total-vendedores').innerText = stats.total_vendedores;
+            const atv = document.getElementById('admin-total-ventas'); if(atv) atv.innerText = `$${parseFloat(stats.total_ventas).toLocaleString('es-CO', { minimumFractionDigits: 2 })}`;
+            const apd = document.getElementById('admin-pedidos-despachados'); if(apd) apd.innerText = stats.pedidos_despachados;
+            const app = document.getElementById('admin-pedidos-pendientes'); if(app) app.innerText = stats.pedidos_pendientes;
+            const atve = document.getElementById('admin-total-vendedores'); if(atve) atve.innerText = stats.total_vendedores;
 
             AdminController.renderAdminStatsChart(stats);
         } catch (e) {

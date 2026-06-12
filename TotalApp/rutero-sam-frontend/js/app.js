@@ -1400,10 +1400,10 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             });
         }
 
-        document.getElementById('btn-optimize').addEventListener('click', () => this.optimizeRouteByDistance());
+        const btnOpt = document.getElementById('btn-optimize'); if(btnOpt) btnOpt.addEventListener('click', () => this.optimizeRouteByDistance());
 
         // Settings Buttons
-        document.getElementById('btn-reset-cache').addEventListener('click', () => {
+        const btnRes = document.getElementById('btn-reset-cache'); if(btnRes) btnRes.addEventListener('click', () => {
             if (confirm("¿Seguro que deseas limpiar la base de datos local y cerrar sesión?")) {
                 localStorage.clear();
                 this.state.visitStates = {};
@@ -1413,7 +1413,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             }
         });
 
-        document.getElementById('btn-download-report').addEventListener('click', () => this.downloadLocalReport());
+        const btnRep = document.getElementById('btn-download-report'); if(btnRep) btnRep.addEventListener('click', () => this.downloadLocalReport());
 
         // Visit steps navigation tabs
         const stepButtons = document.querySelectorAll('.visit-tab-btn');
