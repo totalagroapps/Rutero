@@ -10,7 +10,7 @@ const DespachoController = {
             App.state.catalogo = catalogo;
             localStorage.setItem('sam_cache_catalogo', JSON.stringify(catalogo));
 
-            App.renderDespachoDashboard();
+            DespachoController.renderDespachoDashboard();
         } catch (e) {
             console.error("Error loading despacho data", e);
             App.showToast("Error al cargar datos del servidor.", true);
@@ -56,7 +56,7 @@ const DespachoController = {
                     <input type="number" id="stock-input-${p.id}" value="${p.inventario_disponible}" min="0" style="width: 80px; padding: 6px; border: 1px solid rgba(0,0,0,0.1); border-radius: var(--border-radius-sm); font-weight:700; text-align:center;">
                 </td>
                 <td class="td-right">
-                    <button class="btn btn-success btn-xs" onclick="App.handleUpdateStock(${p.id})" style="font-size:0.75rem; padding:6px 12px; background:#10b981; border-color:#10b981;">
+                    <button class="btn btn-success btn-xs" onclick="DespachoController.handleUpdateStock(${p.id})" style="font-size:0.75rem; padding:6px 12px; background:#10b981; border-color:#10b981;">
                         <i data-lucide="save" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Guardar
                     </button>
                 </td>
@@ -89,8 +89,8 @@ const DespachoController = {
             }
 
             App.showToast("Stock actualizado con éxito.");
-            App.renderDespachoDashboard();
-            App.renderDespachoInventario(document.getElementById('despacho-stock-search').value);
+            DespachoController.renderDespachoDashboard();
+            DespachoController.renderDespachoInventario(document.getElementById('despacho-stock-search').value);
         } catch (err) {
             App.showToast("Error al actualizar stock.", true);
         }
@@ -124,7 +124,7 @@ const DespachoController = {
             if (p.estado_sincronizacion === 'PENDIENTE') {
                 certHtml = '<span style="color:var(--text-muted); font-style:italic;">Pendiente de certificar</span>';
                 actionHtml = `
-                    <button class="btn btn-primary btn-xs" onclick="App.openCertificarModal(${p.id}, '${cliente.nombre.replace(/'/g, "\\'")}')" style="font-size:0.75rem; padding:6px 12px; background:#3b82f6; border-color:#3b82f6;">
+                    <button class="btn btn-primary btn-xs" onclick="DespachoController.openCertificarModal(${p.id}, '${cliente.nombre.replace(/'/g, "\\'")}')" style="font-size:0.75rem; padding:6px 12px; background:#3b82f6; border-color:#3b82f6;">
                         Certificar
                     </button>
                 `;
@@ -191,9 +191,9 @@ AppModals.inject('modal-certificar-pedido'); document.getElementById('modal-cert
             }
 
             App.showToast("Pedido certificado y despachado.");
-            App.closeCertificarModal();
-            App.renderDespachoDashboard();
-            App.renderDespachoCertificar(document.getElementById('despacho-pedidos-search').value);
+            DespachoController.closeCertificarModal();
+            DespachoController.renderDespachoDashboard();
+            DespachoController.renderDespachoCertificar(document.getElementById('despacho-pedidos-search').value);
         } catch (err) {
             App.showToast("Error al guardar la certificación.", true);
         }

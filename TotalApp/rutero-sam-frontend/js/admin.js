@@ -8,8 +8,8 @@ const AdminController = {
             App.state.adminPedidos = await ApiClient.getAdminPedidos();
             
             // Populate vendedor selector in route map view and clients modal
-            App.populateAdminRouteVendedoresSelector();
-            App.populateAdminClientVendedoresSelector();
+            AdminController.populateAdminRouteVendedoresSelector();
+            AdminController.populateAdminClientVendedoresSelector();
         } catch (e) {
             console.error("Error loading admin data", e);
             App.showToast("Error al cargar datos del servidor.", true);
@@ -27,7 +27,7 @@ const AdminController = {
             document.getElementById('admin-pedidos-pendientes').innerText = stats.pedidos_pendientes;
             document.getElementById('admin-total-vendedores').innerText = stats.total_vendedores;
 
-            App.renderAdminStatsChart(stats);
+            AdminController.renderAdminStatsChart(stats);
         } catch (e) {
             console.error("Error loading admin stats", e);
         }
@@ -86,10 +86,10 @@ const AdminController = {
                 <td class="td-medium">${App.escapeHtml(v.nombre)}</td>
                 <td class="td-muted">${App.escapeHtml(v.zona)}</td>
                 <td class="td-right">
-                    <button class="admin-action-btn" onclick="App.openVendedorModal(${JSON.stringify(v).replace(/"/g, '&quot;')})">
+                    <button class="admin-action-btn" onclick="AdminController.openVendedorModal(${JSON.stringify(v).replace(/"/g, '&quot;')})">
                         <i data-lucide="edit-2"></i>
                     </button>
-                    <button class="admin-action-btn delete" onclick="App.deleteVendedor(${v.id})">
+                    <button class="admin-action-btn delete" onclick="AdminController.deleteVendedor(${v.id})">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </td>
@@ -137,10 +137,10 @@ const AdminController = {
                 <td class="td-bold">#${c.secuencia_ruta}</td>
                 <td >${estadoBadge}</td>
                 <td class="td-right td-nowrap">
-                    <button class="admin-action-btn" onclick="App.openClienteAdminModal(${JSON.stringify(c).replace(/"/g, '&quot;')})">
+                    <button class="admin-action-btn" onclick="AdminController.openClienteAdminModal(${JSON.stringify(c).replace(/"/g, '&quot;')})">
                         <i data-lucide="edit-2"></i>
                     </button>
-                    <button class="admin-action-btn delete" onclick="App.deleteClienteAdmin(${c.id})">
+                    <button class="admin-action-btn delete" onclick="AdminController.deleteClienteAdmin(${c.id})">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </td>
@@ -152,7 +152,7 @@ const AdminController = {
         const searchInput = document.getElementById('admin-cliente-search');
         if (searchInput && !searchInput.dataset.hasListener) {
             searchInput.dataset.hasListener = 'true';
-            searchInput.addEventListener('input', () => App.renderAdminClientes());
+            searchInput.addEventListener('input', () => AdminController.renderAdminClientes());
         }
         App.refreshIcons();
     },
@@ -188,10 +188,10 @@ const AdminController = {
                 <td style="padding:12px 16px;">${p.inventario_disponible}</td>
                 <td >${estadoBadge}</td>
                 <td class="td-right">
-                    <button class="admin-action-btn" onclick="App.openProductoModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                    <button class="admin-action-btn" onclick="AdminController.openProductoModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
                         <i data-lucide="edit-2"></i>
                     </button>
-                    <button class="admin-action-btn delete" onclick="App.deleteAdminProducto(${p.id})">
+                    <button class="admin-action-btn delete" onclick="AdminController.deleteAdminProducto(${p.id})">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </td>
@@ -202,7 +202,7 @@ const AdminController = {
         const searchInput = document.getElementById('admin-producto-search');
         if (searchInput && !searchInput.dataset.hasListener) {
             searchInput.dataset.hasListener = 'true';
-            searchInput.addEventListener('input', () => App.renderAdminProductos());
+            searchInput.addEventListener('input', () => AdminController.renderAdminProductos());
         }
         App.refreshIcons();
     },
@@ -233,8 +233,8 @@ const AdminController = {
             let actionButtons = '';
             if (p.estado_sincronizacion === 'PENDIENTE') {
                 actionButtons = `
-                    <button class="btn btn-success btn-xs" onclick="App.updatePedidoStatusAdmin(${p.id}, 'DESPACHADO')" style="font-size:0.65rem; padding:4px 8px; margin-right:4px;">Despachar</button>
-                    <button class="btn btn-danger btn-xs" onclick="App.updatePedidoStatusAdmin(${p.id}, 'CANCELADO')" style="font-size:0.65rem; padding:4px 8px;">Cancelar</button>
+                    <button class="btn btn-success btn-xs" onclick="AdminController.updatePedidoStatusAdmin(${p.id}, 'DESPACHADO')" style="font-size:0.65rem; padding:4px 8px; margin-right:4px;">Despachar</button>
+                    <button class="btn btn-danger btn-xs" onclick="AdminController.updatePedidoStatusAdmin(${p.id}, 'CANCELADO')" style="font-size:0.65rem; padding:4px 8px;">Cancelar</button>
                 `;
             } else {
                 actionButtons = `<span style="font-size:0.72rem; color:var(--text-muted);">Sin acciones</span>`;
@@ -269,8 +269,8 @@ const AdminController = {
         try {
             await ApiClient.updatePedidoStatus(pedidoId, nuevoEstado);
             App.showToast(`Pedido ${nuevoEstado === 'DESPACHADO' ? 'despachado' : 'cancelado'} con éxito.`);
-            await App.loadAdminData();
-            App.renderAdminPedidos();
+            await AdminController.loadAdminData();
+            AdminController.renderAdminPedidos();
         } catch (err) {
             App.showToast(err.message || 'Error al actualizar el pedido.', true);
         }
@@ -383,9 +383,9 @@ AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-v
         try {
             await ApiClient.saveAdminVendedor(vendedor);
             App.showToast("Vendedor guardado con éxito.");
-            App.closeVendedorModal();
-            await App.loadAdminData();
-            App.renderAdminVendedores();
+            AdminController.closeVendedorModal();
+            await AdminController.loadAdminData();
+            AdminController.renderAdminVendedores();
         } catch (err) {
             App.showToast(err.message, true);
         }
@@ -399,8 +399,8 @@ AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-v
         try {
             await ApiClient.deleteAdminVendedor(id);
             App.showToast("Vendedor eliminado.");
-            await App.loadAdminData();
-            App.renderAdminVendedores();
+            await AdminController.loadAdminData();
+            AdminController.renderAdminVendedores();
         } catch (err) {
             App.showToast(err.message, true);
         }
@@ -502,9 +502,9 @@ AppModals.inject('modal-admin-cliente'); document.getElementById('modal-admin-cl
         try {
             await ApiClient.saveAdminCliente(cliente);
             App.showToast("Comercio guardado con éxito.");
-            App.closeClienteAdminModal();
-            await App.loadAdminData();
-            App.renderAdminClientes();
+            AdminController.closeClienteAdminModal();
+            await AdminController.loadAdminData();
+            AdminController.renderAdminClientes();
         } catch (err) {
             App.showToast(err.message, true);
         }
@@ -518,8 +518,8 @@ AppModals.inject('modal-admin-cliente'); document.getElementById('modal-admin-cl
         try {
             await ApiClient.deleteAdminCliente(id);
             App.showToast("Comercio desactivado.");
-            await App.loadAdminData();
-            App.renderAdminClientes();
+            await AdminController.loadAdminData();
+            AdminController.renderAdminClientes();
         } catch (err) {
             App.showToast(err.message, true);
         }
@@ -575,9 +575,9 @@ AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-p
         try {
             await ApiClient.saveAdminProducto(producto);
             App.showToast("Producto guardado con éxito.");
-            App.closeProductoModal();
-            await App.loadAdminData();
-            App.renderAdminProductos();
+            AdminController.closeProductoModal();
+            await AdminController.loadAdminData();
+            AdminController.renderAdminProductos();
         } catch (err) {
             App.showToast(err.message, true);
         }
@@ -591,8 +591,8 @@ AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-p
         try {
             await ApiClient.deleteAdminProducto(id);
             App.showToast("Producto desactivado.");
-            await App.loadAdminData();
-            App.renderAdminProductos();
+            await AdminController.loadAdminData();
+            AdminController.renderAdminProductos();
         } catch (err) {
             App.showToast(err.message, true);
         }
@@ -629,10 +629,10 @@ AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-p
                             : '<span class="status-badge dispatched" style="font-size:0.65rem;">NO (Cambiada)</span>'}
                     </td>
                     <td class="td-right">
-                        <button class="admin-action-btn" onclick="App.openUsuarioModal(${JSON.stringify(u).replace(/"/g, '&quot;')})">
+                        <button class="admin-action-btn" onclick="AdminController.openUsuarioModal(${JSON.stringify(u).replace(/"/g, '&quot;')})">
                             <i data-lucide="edit-2"></i>
                         </button>
-                        <button class="admin-action-btn delete" onclick="App.deleteUsuario(${u.id})">
+                        <button class="admin-action-btn delete" onclick="AdminController.deleteUsuario(${u.id})">
                             <i data-lucide="trash-2"></i>
                         </button>
                     </td>
@@ -684,7 +684,7 @@ AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-p
             if (passHelp) passHelp.style.display = 'none';
         }
 
-        App.handleUserRolChange();
+        AdminController.handleUserRolChange();
         AppModals.inject('modal-admin-usuario');
 AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-usuario').classList.remove('hidden');
     },
@@ -746,8 +746,8 @@ AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-us
         try {
             await ApiClient.saveAdminUsuario(usuario);
             App.showToast("Usuario guardado con éxito.");
-            App.closeUsuarioModal();
-            App.renderAdminUsuarios();
+            AdminController.closeUsuarioModal();
+            AdminController.renderAdminUsuarios();
         } catch (err) {
             App.showToast(err.message, true);
         }
@@ -761,7 +761,7 @@ AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-us
         try {
             await ApiClient.deleteAdminUsuario(id);
             App.showToast("Usuario eliminado.");
-            App.renderAdminUsuarios();
+            AdminController.renderAdminUsuarios();
         } catch (err) {
             App.showToast(err.message, true);
         }
