@@ -949,15 +949,15 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             let item = this.state.cart[pId];
             let subtotal = item.qty * item.precio;
             total += subtotal;
-            html += 
+            html += `
                 <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
                     <div>
-                        <div style="font-weight: 500;"></div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Cant:  x {item.precio.toLocaleString()}</div>
+                        <div style="font-weight: 500;">${this.escapeHtml(item.nombre)}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Cant: ${item.qty} x $${item.precio.toLocaleString()}</div>
                     </div>
-                    <div style="font-weight: 600;">{subtotal.toLocaleString()}</div>
+                    <div style="font-weight: 600;">$${subtotal.toLocaleString()}</div>
                 </li>
-            ;
+            `;
         }
         
         document.getElementById('confirm-checkout-items').innerHTML = html;
