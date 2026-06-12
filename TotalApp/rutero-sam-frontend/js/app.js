@@ -8,7 +8,7 @@ const App = {
         user: null, // Logged in user details: { id, username, rol, debe_cambiar_clave, vendedor_id }
         clientes: [],
         catalogo: [],
-        visitStates: {}, // client_id -> 'pending' | 'visited' | 'no-sale'
+        visitStates: {}, // codigo_pdv -> 'pending' | 'visited' | 'no-sale'
         cart: {},        // product_id -> quantity (used for orders)
         tipoCliente: 'directo', // 'directo' | 'distribuidor'
         activeVisit: null, // client object currently being visited by Vendedor
@@ -829,7 +829,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         }
 
         this.state.clientes.forEach(cliente => {
-            const visitState = this.state.visitStates[cliente.id] || 'pending';
+            const visitState = this.state.visitStates[cliente.codigo_pdv] || 'pending';
             
             let badgeText = 'Pendiente';
             let badgeClass = 'pending';
@@ -1129,7 +1129,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             this.updateSyncBadge();
         }
 
-        this.state.visitStates[client.id] = status;
+        this.state.visitStates[client.codigo_pdv] = status;
         localStorage.setItem('sam_visit_states', JSON.stringify(this.state.visitStates));
 
         this.showToast(`Visita registrada.`);
@@ -2649,7 +2649,8 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         if (this.state.adminPedidos) {
             this.state.adminPedidos.forEach(p => {
                 if (p.vendedor_id === vendedorId) {
-                    visitStates[p.cliente_id] = p.estado_sincronizacion === 'CANCELADO' ? 'no-sale' : 'visited';
+                    const client = this.state.clientes.find(c => c.id === p.cliente_id);
+                    if (client) visitStates[client.codigo_pdv] = p.estado_sincronizacion === 'CANCELADO' ? 'no-sale' : 'visited';
                 }
             });
         }

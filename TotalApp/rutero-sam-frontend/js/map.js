@@ -56,7 +56,7 @@ const MapController = {
                 points.push([lat, lng]);
 
                 // Determine pin color based on status
-                const visitState = visitStates[cliente.id] || 'pending'; // pending, visited, no-sale
+                const visitState = visitStates[cliente.codigo_pdv] || 'pending'; // pending, visited, no-sale
                 const color = this.getMarkerColor(visitState, cliente.secuencia_ruta);
                 
                 // Create custom circular marker SVG
@@ -203,7 +203,7 @@ const AdminMapController = {
                 points.push([lat, lng]);
                 
                 // Determine pin color based on status
-                const visitState = visitStates[cliente.id] || 'pending'; // pending, visited, no-sale
+                const visitState = visitStates[cliente.codigo_pdv] || 'pending'; // pending, visited, no-sale
                 let color = '#6b7280'; // Gray (pending)
                 if (visitState === 'visited') color = '#10b981'; // Green (sale)
                 else if (visitState === 'no-sale') color = '#f59e0b'; // Amber (no-sale)
