@@ -925,8 +925,10 @@ const App = {
 
         this.setVisitStep('order');
         this.renderVisitProducts();
-        document.getElementById('visit-tipo-cliente').value = 'directo';
-        this.state.tipoCliente = 'directo';
+        const tipo = client.tipo_cliente || 'directo';
+        const tipoSelect = document.getElementById('visit-tipo-cliente');
+        if (tipoSelect) tipoSelect.value = tipo;
+        this.state.tipoCliente = tipo;
         this.navigateToView('visita');
     },
 
