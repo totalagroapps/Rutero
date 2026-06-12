@@ -251,7 +251,7 @@ const App = {
                             <div style="color:var(--text-secondary); margin-bottom:4px;">Vence: ${new Date(f.fecha_vencimiento).toLocaleDateString('es-CO')}</div>
                             <div style="display:flex; justify-content:space-between;">
                                 <span>Total: $${f.monto_total.toLocaleString('es-CO')}</span>
-                                <strong style="color:var(--danger-color);">Saldo: $${f.saldo_pendiente.toLocaleString('es-CO')}</strong>
+                                <strong class="text-danger">Saldo: $${f.saldo_pendiente.toLocaleString('es-CO')}</strong>
                             </div>
                         </div>
                     `;
@@ -824,7 +824,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         clientsContainer.innerHTML = '';
 
         if (this.state.clientes.length === 0) {
-            clientsContainer.innerHTML = '<p style="text-align:center; padding: 20px; color:var(--text-secondary);">No hay clientes cargados.</p>';
+            clientsContainer.innerHTML = '<p class="empty-state-text">No hay clientes cargados.</p>';
             return;
         }
 
@@ -1198,7 +1198,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
             container.innerHTML = '';
             if (filtered.length === 0) {
-                container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--text-secondary);">No hay pedidos en estado ${filter.toLowerCase()}.</p>`;
+                container.innerHTML = `<p class="empty-state-text">No hay pedidos en estado ${filter.toLowerCase()}.</p>`;
                 return;
             }
 
@@ -1370,7 +1370,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         }
 
         if (filtered.length === 0) {
-            container.innerHTML = `<p style="text-align:center; padding: 20px; color:var(--text-secondary);">No hay pedidos en esta sección.</p>`;
+            container.innerHTML = `<p class="empty-state-text">No hay pedidos en esta sección.</p>`;
             return;
         }
 
@@ -1566,7 +1566,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         });
 
         if (filtered.length === 0) {
-            container.innerHTML = `<p style="text-align:center; padding: 20px; color:var(--text-secondary);">No hay ventas registradas en esta fecha.</p>`;
+            container.innerHTML = `<p class="empty-state-text">No hay ventas registradas en esta fecha.</p>`;
             return;
         }
 

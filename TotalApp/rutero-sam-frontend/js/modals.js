@@ -37,28 +37,28 @@ const AppModals = {
                 <h3>Registrar Pago / Abono</h3>
                 <button class="btn-close-modal" onclick="App.closeAbonoModal()">×</button>
             </div>
-            <form id="form-abono" onsubmit="App.handleSaveAbono(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-abono" onsubmit="App.handleSaveAbono(event)" class="flex-col-gap">
                 <div class="form-group">
-                    <label for="abono-factura" style="font-size:0.72rem; font-weight:700;">Factura *</label>
-                    <select id="abono-factura" required style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="abono-factura" class="text-sm-bold">Factura *</label>
+                    <select id="abono-factura" required class="admin-input">
                         <!-- Loaded dynamically based on active client -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="abono-monto" style="font-size:0.72rem; font-weight:700;">Monto a Pagar ($) *</label>
-                    <input type="number" id="abono-monto" required min="1" step="0.01" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="abono-monto" class="text-sm-bold">Monto a Pagar ($) *</label>
+                    <input type="number" id="abono-monto" required min="1" step="0.01" class="admin-input">
                 </div>
                 <div class="form-group">
-                    <label for="abono-metodo" style="font-size:0.72rem; font-weight:700;">Método de Pago *</label>
-                    <select id="abono-metodo" required style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="abono-metodo" class="text-sm-bold">Método de Pago *</label>
+                    <select id="abono-metodo" required class="admin-input">
                         <option value="EFECTIVO">Efectivo</option>
                         <option value="TRANSFERENCIA">Transferencia</option>
                         <option value="TARJETA">Tarjeta / POS</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="abono-notas" style="font-size:0.72rem; font-weight:700;">Notas Adicionales</label>
-                    <textarea id="abono-notas" rows="2" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;"></textarea>
+                    <label for="abono-notas" class="text-sm-bold">Notas Adicionales</label>
+                    <textarea id="abono-notas" rows="2" class="admin-input"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px;">Registrar Pago</button>
             </form>
@@ -89,11 +89,11 @@ const AppModals = {
                 <input type="hidden" id="admin-vendedor-id">
                 <div class="form-group" style="margin-bottom:14px;">
                     <label for="admin-vendedor-nombre" style="font-size:0.75rem; font-weight:700;">Nombre Completo *</label>
-                    <input type="text" id="admin-vendedor-nombre" required placeholder="Ej. Juan Pérez" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                    <input type="text" id="admin-vendedor-nombre" required placeholder="Ej. Juan Pérez" class="admin-input-lg">
                 </div>
                 <div class="form-group" style="margin-bottom:14px;">
                     <label for="admin-vendedor-zona" style="font-size:0.75rem; font-weight:700;">Zona de Cobertura *</label>
-                    <input type="text" id="admin-vendedor-zona" required placeholder="Ej. Santiago Oriente" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                    <input type="text" id="admin-vendedor-zona" required placeholder="Ej. Santiago Oriente" class="admin-input-lg">
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px; background:#6366f1;">Guardar Vendedor</button>
             </form>
@@ -107,72 +107,72 @@ const AppModals = {
                 <h3 id="modal-cliente-admin-title">Nuevo Comercio</h3>
                 <button class="btn-close-modal" onclick="App.closeClienteAdminModal()">×</button>
             </div>
-            <form id="form-admin-cliente" onsubmit="AdminController.handleSaveClienteAdmin(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-admin-cliente" onsubmit="AdminController.handleSaveClienteAdmin(event)" class="flex-col-gap">
                 <input type="hidden" id="admin-cliente-id">
                 <input type="hidden" id="admin-cliente-uuid">
                 
                 <div class="form-group">
-                    <label for="admin-cliente-codigo" style="font-size:0.72rem; font-weight:700;">Código PDV *</label>
-                    <input type="text" id="admin-cliente-codigo" required placeholder="Ej. PDV007" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-cliente-codigo" class="text-sm-bold">Código PDV *</label>
+                    <input type="text" id="admin-cliente-codigo" required placeholder="Ej. PDV007" class="admin-input">
                 </div>
                 <div class="form-group">
-                    <label for="admin-cliente-nombre" style="font-size:0.72rem; font-weight:700;">Nombre del Comercio *</label>
-                    <input type="text" id="admin-cliente-nombre" required placeholder="Ej. Minimarket Don Lucho" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-cliente-nombre" class="text-sm-bold">Nombre del Comercio *</label>
+                    <input type="text" id="admin-cliente-nombre" required placeholder="Ej. Minimarket Don Lucho" class="admin-input">
                 </div>
                 <div class="form-group">
-                    <label for="admin-cliente-encargado" style="font-size:0.72rem; font-weight:700;">Nombre del Encargado</label>
-                    <input type="text" id="admin-cliente-encargado" placeholder="Ej. Luis Pérez" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-cliente-encargado" class="text-sm-bold">Nombre del Encargado</label>
+                    <input type="text" id="admin-cliente-encargado" placeholder="Ej. Luis Pérez" class="admin-input">
                 </div>
                 <div class="form-group" style="position: relative;">
-                    <label for="admin-cliente-direccion" style="font-size:0.72rem; font-weight:700;">Dirección Completa *</label>
-                    <input type="text" id="admin-cliente-direccion" required placeholder="Ej. Av. Providencia 1250" autocomplete="off" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-cliente-direccion" class="text-sm-bold">Dirección Completa *</label>
+                    <input type="text" id="admin-cliente-direccion" required placeholder="Ej. Av. Providencia 1250" autocomplete="off" class="admin-input">
                     <ul id="admin-cliente-direccion-suggestions" class="autocomplete-suggestions hidden"></ul>
                 </div>
-                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group-row grid-2-cols">
                     <div class="form-group">
-                        <label for="admin-cliente-lat" style="font-size:0.72rem; font-weight:700;">Latitud</label>
-                        <input type="number" step="any" id="admin-cliente-lat" placeholder="-33.43" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <label for="admin-cliente-lat" class="text-sm-bold">Latitud</label>
+                        <input type="number" step="any" id="admin-cliente-lat" placeholder="-33.43" class="admin-input">
                     </div>
                     <div class="form-group">
-                        <label for="admin-cliente-lng" style="font-size:0.72rem; font-weight:700;">Longitud</label>
-                        <input type="number" step="any" id="admin-cliente-lng" placeholder="-70.62" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <label for="admin-cliente-lng" class="text-sm-bold">Longitud</label>
+                        <input type="number" step="any" id="admin-cliente-lng" placeholder="-70.62" class="admin-input">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label style="font-size:0.72rem; font-weight:700;">Seleccionar en Mapa</label>
+                    <label class="text-sm-bold">Seleccionar en Mapa</label>
                     <div id="admin-cliente-picker-map" style="height: 180px; width: 100%; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.1); z-index: 1; margin-top: 4px;"></div>
                 </div>
 
-                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group-row grid-2-cols">
                     <div class="form-group">
-                        <label for="admin-cliente-frecuencia" style="font-size:0.72rem; font-weight:700;">Frecuencia</label>
-                        <select id="admin-cliente-frecuencia" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <label for="admin-cliente-frecuencia" class="text-sm-bold">Frecuencia</label>
+                        <select id="admin-cliente-frecuencia" class="admin-input">
                             <option value="Semanal">Semanal</option>
                             <option value="Quincenal">Quincenal</option>
                             <option value="Mensual">Mensual</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="admin-cliente-secuencia" style="font-size:0.72rem; font-weight:700;">Secuencia</label>
-                        <input type="number" id="admin-cliente-secuencia" required value="1" min="1" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <label for="admin-cliente-secuencia" class="text-sm-bold">Secuencia</label>
+                        <input type="number" id="admin-cliente-secuencia" required value="1" min="1" class="admin-input">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="admin-cliente-vendedor" style="font-size:0.72rem; font-weight:700;">Vendedor Asignado</label>
-                    <select id="admin-cliente-vendedor" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-cliente-vendedor" class="text-sm-bold">Vendedor Asignado</label>
+                    <select id="admin-cliente-vendedor" class="admin-input">
                         <!-- Loaded dynamically -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="admin-cliente-tipo" style="font-size:0.72rem; font-weight:700;">Modalidad de Venta</label>
-                    <select id="admin-cliente-tipo" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-cliente-tipo" class="text-sm-bold">Modalidad de Venta</label>
+                    <select id="admin-cliente-tipo" class="admin-input">
                         <option value="directo">Cliente Directo</option>
                         <option value="distribuidor">Distribuidor</option>
                     </select>
                 </div>
-                <div class="form-group-switch" style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                    <span style="font-size:0.72rem; font-weight:700;">Comercio Activo</span>
+                <div class="form-group-switch flex-between">
+                    <span class="text-sm-bold">Comercio Activo</span>
                     <label class="switch">
                         <input type="checkbox" id="admin-cliente-activo" checked>
                         <span class="slider round"></span>
@@ -190,34 +190,34 @@ const AppModals = {
                 <h3 id="modal-producto-title">Nuevo Producto</h3>
                 <button class="btn-close-modal" onclick="App.closeProductoModal()">×</button>
             </div>
-            <form id="form-admin-producto" onsubmit="AdminController.handleSaveProducto(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-admin-producto" onsubmit="AdminController.handleSaveProducto(event)" class="flex-col-gap">
                 <input type="hidden" id="admin-producto-id">
                 <div class="form-group">
-                    <label for="admin-producto-sku" style="font-size:0.72rem; font-weight:700;">SKU *</label>
-                    <input type="text" id="admin-producto-sku" required placeholder="Ej. PROD007" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-producto-sku" class="text-sm-bold">SKU *</label>
+                    <input type="text" id="admin-producto-sku" required placeholder="Ej. PROD007" class="admin-input">
                 </div>
                 <div class="form-group">
-                    <label for="admin-producto-nombre" style="font-size:0.72rem; font-weight:700;">Nombre del Producto *</label>
-                    <input type="text" id="admin-producto-nombre" required placeholder="Ej. Fanta 1.5L" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-producto-nombre" class="text-sm-bold">Nombre del Producto *</label>
+                    <input type="text" id="admin-producto-nombre" required placeholder="Ej. Fanta 1.5L" class="admin-input">
                 </div>
-                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group-row grid-2-cols">
                     <div class="form-group">
-                        <label for="admin-producto-precio-directo" style="font-size:0.72rem; font-weight:700;">Precio Directo ($) *</label>
-                        <input type="number" step="0.01" id="admin-producto-precio-directo" required placeholder="1200" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <label for="admin-producto-precio-directo" class="text-sm-bold">Precio Directo ($) *</label>
+                        <input type="number" step="0.01" id="admin-producto-precio-directo" required placeholder="1200" class="admin-input">
                     </div>
                 </div>
-                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group-row grid-2-cols">
                     <div class="form-group">
-                        <label for="admin-producto-precio-distribuidor" style="font-size:0.72rem; font-weight:700;">Precio Dist. ($)</label>
-                        <input type="number" step="0.01" id="admin-producto-precio-distribuidor" placeholder="1000" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <label for="admin-producto-precio-distribuidor" class="text-sm-bold">Precio Dist. ($)</label>
+                        <input type="number" step="0.01" id="admin-producto-precio-distribuidor" placeholder="1000" class="admin-input">
                     </div>
                     <div class="form-group">
-                        <label for="admin-producto-stock" style="font-size:0.72rem; font-weight:700;">Inventario Fábrica</label>
-                        <input type="number" id="admin-producto-stock" value="100" min="0" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                        <label for="admin-producto-stock" class="text-sm-bold">Inventario Fábrica</label>
+                        <input type="number" id="admin-producto-stock" value="100" min="0" class="admin-input">
                     </div>
                 </div>
-                <div class="form-group-switch" style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                    <span style="font-size:0.72rem; font-weight:700;">Disponible en Catálogo</span>
+                <div class="form-group-switch flex-between">
+                    <span class="text-sm-bold">Disponible en Catálogo</span>
                     <label class="switch">
                         <input type="checkbox" id="admin-producto-activo" checked>
                         <span class="slider round"></span>
@@ -243,11 +243,11 @@ const AppModals = {
             <form id="form-change-password" onsubmit="App.handleChangePassword(event)" style="padding: 0 16px 20px 16px; display: flex; flex-direction: column; gap: 12px;">
                 <div class="form-group">
                     <label for="change-password-nueva" style="font-size: 0.75rem; font-weight: 700;">Nueva Contraseña *</label>
-                    <input type="password" id="change-password-nueva" required placeholder="Mínimo 8 caracteres con números o símbolos" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                    <input type="password" id="change-password-nueva" required placeholder="Mínimo 8 caracteres con números o símbolos" class="admin-input-lg">
                 </div>
                 <div class="form-group">
                     <label for="change-password-confirmar" style="font-size: 0.75rem; font-weight: 700;">Confirmar Nueva Contraseña *</label>
-                    <input type="password" id="change-password-confirmar" required placeholder="Repite la contraseña" style="width:100%; padding:10px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.85rem; margin-top:4px;">
+                    <input type="password" id="change-password-confirmar" required placeholder="Repite la contraseña" class="admin-input-lg">
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; background: #d97706; border-color: #d97706;">
                     Actualizar Contraseña
@@ -263,7 +263,7 @@ const AppModals = {
                 <h3>Certificar Despacho</h3>
                 <button class="btn-close-modal" onclick="App.closeCertificarModal()">×</button>
             </div>
-            <form id="form-certificar-pedido" onsubmit="DespachoController.handleSaveCertificacion(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-certificar-pedido" onsubmit="DespachoController.handleSaveCertificacion(event)" class="flex-col-gap">
                 <input type="hidden" id="certificar-pedido-id">
                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
                     <span style="font-weight:700;">Pedido ID:</span> <span id="certificar-pedido-label">#12</span><br>
@@ -287,33 +287,33 @@ const AppModals = {
                 <h3 id="modal-usuario-title">Nuevo Usuario</h3>
                 <button class="btn-close-modal" onclick="App.closeUsuarioModal()">×</button>
             </div>
-            <form id="form-admin-usuario" onsubmit="AdminController.handleSaveUsuario(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-admin-usuario" onsubmit="AdminController.handleSaveUsuario(event)" class="flex-col-gap">
                 <input type="hidden" id="admin-usuario-id">
                 <div class="form-group">
-                    <label for="admin-usuario-username" style="font-size:0.72rem; font-weight:700;">Nombre de Usuario (Username) *</label>
-                    <input type="text" id="admin-usuario-username" required placeholder="Ej. vendedor1" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-usuario-username" class="text-sm-bold">Nombre de Usuario (Username) *</label>
+                    <input type="text" id="admin-usuario-username" required placeholder="Ej. vendedor1" class="admin-input">
                 </div>
                 <div class="form-group" id="admin-usuario-password-group">
-                    <label for="admin-usuario-password" style="font-size:0.72rem; font-weight:700;">Contraseña *</label>
-                    <input type="password" id="admin-usuario-password" placeholder="Establecer contraseña" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-usuario-password" class="text-sm-bold">Contraseña *</label>
+                    <input type="password" id="admin-usuario-password" placeholder="Establecer contraseña" class="admin-input">
                     <p class="help-text" id="admin-usuario-password-help" style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">Dejar vacío para mantener contraseña actual.</p>
                 </div>
                 <div class="form-group">
-                    <label for="admin-usuario-rol" style="font-size:0.72rem; font-weight:700;">Rol del Sistema *</label>
-                    <select id="admin-usuario-rol" required onchange="AdminController.handleUserRolChange()" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-usuario-rol" class="text-sm-bold">Rol del Sistema *</label>
+                    <select id="admin-usuario-rol" required onchange="AdminController.handleUserRolChange()" class="admin-input">
                         <option value="vendedor">Vendedor</option>
                         <option value="despacho">Despacho / Bodega</option>
                         <option value="admin">Administrador</option>
                     </select>
                 </div>
                 <div class="form-group" id="admin-usuario-vendedor-group">
-                    <label for="admin-usuario-vendedor" style="font-size:0.72rem; font-weight:700;">Vendedor Asociado</label>
-                    <select id="admin-usuario-vendedor" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <label for="admin-usuario-vendedor" class="text-sm-bold">Vendedor Asociado</label>
+                    <select id="admin-usuario-vendedor" class="admin-input">
                         <!-- Loaded dynamically -->
                     </select>
                 </div>
-                <div class="form-group-switch" style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                    <span style="font-size:0.72rem; font-weight:700;">Fuerza Cambio de Clave</span>
+                <div class="form-group-switch flex-between">
+                    <span class="text-sm-bold">Fuerza Cambio de Clave</span>
                     <label class="switch">
                         <input type="checkbox" id="admin-usuario-debe-cambiar" checked>
                         <span class="slider round"></span>
@@ -331,7 +331,7 @@ const AppModals = {
                 <h3 id="modal-cartera-title">Estado de Cartera</h3>
                 <button class="btn-close-modal" onclick="document.getElementById('modal-cartera-detalle').classList.add('hidden')">×</button>
             </div>
-            <div style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <div class="flex-col-gap">
                 <div style="background:var(--bg-secondary); border-radius:var(--border-radius-md); padding:16px; text-align:left;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                         <span style="font-size:0.85rem; color:var(--text-secondary);">Total Adeudado:</span>

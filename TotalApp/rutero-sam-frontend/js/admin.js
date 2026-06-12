@@ -75,17 +75,17 @@ const AdminController = {
         tbody.innerHTML = '';
 
         if (!App.state.adminVendedores || App.state.adminVendedores.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-secondary);">No hay vendedores registrados.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state-text">No hay vendedores registrados.</td></tr>';
             return;
         }
 
         App.state.adminVendedores.forEach(v => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;"><b>${v.id}</b></td>
-                <td style="padding: 14px 16px; font-weight:500;">${App.escapeHtml(v.nombre)}</td>
-                <td style="padding: 14px 16px; color:var(--text-secondary);">${App.escapeHtml(v.zona)}</td>
-                <td style="padding: 14px 16px; text-align: right;">
+                <td ><b>${v.id}</b></td>
+                <td class="td-medium">${App.escapeHtml(v.nombre)}</td>
+                <td class="td-muted">${App.escapeHtml(v.zona)}</td>
+                <td class="td-right">
                     <button class="admin-action-btn" onclick="App.openVendedorModal(${JSON.stringify(v).replace(/"/g, '&quot;')})">
                         <i data-lucide="edit-2"></i>
                     </button>
@@ -115,28 +115,28 @@ const AdminController = {
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron comercios.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state-text">No se encontraron comercios.</td></tr>';
             return;
         }
 
         filtered.forEach(c => {
             const vendedor = App.state.adminVendedores.find(v => v.id === c.vendedor_id);
-            const vendedorNombre = vendedor ? vendedor.nombre : '<span style="color:var(--danger-color);">Sin asignar</span>';
+            const vendedorNombre = vendedor ? vendedor.nombre : '<span class="text-danger">Sin asignar</span>';
             const estadoBadge = c.activo 
                 ? '<span class="status-badge dispatched">Activo</span>' 
                 : '<span class="status-badge inactive">Inactivo</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;">
-                    <div style="font-weight:600; color:var(--text-primary);">${App.escapeHtml(c.nombre)}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${App.escapeHtml(c.codigo_pdv)} · ${c.encargado || 'Sin encargado'}</div>
+                <td >
+                    <div class="text-primary-bold">${App.escapeHtml(c.nombre)}</div>
+                    <div class="text-xs-muted">${App.escapeHtml(c.codigo_pdv)} · ${c.encargado || 'Sin encargado'}</div>
                 </td>
                 <td style="padding: 14px 16px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary);">${App.escapeHtml(c.direccion)}</td>
-                <td style="padding: 14px 16px; font-weight:500;">${vendedorNombre}</td>
-                <td style="padding: 14px 16px; font-weight:700;">#${c.secuencia_ruta}</td>
-                <td style="padding: 14px 16px;">${estadoBadge}</td>
-                <td style="padding: 14px 16px; text-align: right; white-space:nowrap;">
+                <td class="td-medium">${vendedorNombre}</td>
+                <td class="td-bold">#${c.secuencia_ruta}</td>
+                <td >${estadoBadge}</td>
+                <td class="td-right td-nowrap">
                     <button class="admin-action-btn" onclick="App.openClienteAdminModal(${JSON.stringify(c).replace(/"/g, '&quot;')})">
                         <i data-lucide="edit-2"></i>
                     </button>
@@ -170,7 +170,7 @@ const AdminController = {
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron productos.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state-text">No se encontraron productos.</td></tr>';
             return;
         }
 
@@ -181,13 +181,13 @@ const AdminController = {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;"><code>${App.escapeHtml(p.sku)}</code></td>
-                <td style="padding: 14px 16px; font-weight:500;">${App.escapeHtml(p.nombre)}</td>
+                <td ><code>${App.escapeHtml(p.sku)}</code></td>
+                <td class="td-medium">${App.escapeHtml(p.nombre)}</td>
                 <td style="padding:12px 16px;">$${parseFloat(p.precio_directo).toLocaleString('es-CO')}</td>
                 <td style="padding:12px 16px;">${p.precio_distribuidor ? '$' + parseFloat(p.precio_distribuidor).toLocaleString('es-CO') : '-'}</td>
                 <td style="padding:12px 16px;">${p.inventario_disponible}</td>
-                <td style="padding: 14px 16px;">${estadoBadge}</td>
-                <td style="padding: 14px 16px; text-align: right;">
+                <td >${estadoBadge}</td>
+                <td class="td-right">
                     <button class="admin-action-btn" onclick="App.openProductoModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
                         <i data-lucide="edit-2"></i>
                     </button>
@@ -214,7 +214,7 @@ const AdminController = {
         tbody.innerHTML = '';
 
         if (!App.state.adminPedidos || App.state.adminPedidos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">No se han tomado pedidos todavía.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state-text">No se han tomado pedidos todavía.</td></tr>';
             return;
         }
 
@@ -242,15 +242,15 @@ const AdminController = {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;">
-                    <div style="font-weight:600; color:var(--text-primary);">#${p.id}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${fecha}</div>
+                <td >
+                    <div class="text-primary-bold">#${p.id}</div>
+                    <div class="text-xs-muted">${fecha}</div>
                 </td>
-                <td style="padding: 14px 16px; font-weight:500;">${clienteNombre}</td>
-                <td style="padding: 14px 16px; color:var(--text-secondary);">${vendedorNombre}</td>
+                <td class="td-medium">${clienteNombre}</td>
+                <td class="td-muted">${vendedorNombre}</td>
                 <td style="padding: 14px 16px; font-weight:700; color:var(--text-primary);">$${parseFloat(p.total).toLocaleString('es-CO')}</td>
-                <td style="padding: 14px 16px;"><span class="status-badge ${estadoClass}">${p.estado_sincronizacion}</span></td>
-                <td style="padding: 14px 16px; text-align: right; white-space:nowrap;">
+                <td ><span class="status-badge ${estadoClass}">${p.estado_sincronizacion}</span></td>
+                <td class="td-right td-nowrap">
                     ${actionButtons}
                 </td>
             `;
@@ -610,7 +610,7 @@ AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-p
             tbody.innerHTML = '';
 
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-secondary);">No hay usuarios de acceso registrados.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state-text">No hay usuarios de acceso registrados.</td></tr>';
                 return;
             }
 
@@ -620,15 +620,15 @@ AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-p
                 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="padding: 14px 16px; font-weight:700;">${App.escapeHtml(u.username)}</td>
-                    <td style="padding: 14px 16px;"><span class="status-badge" style="background:#e0e7ff; color:#4338ca;">${u.rol.toUpperCase()}</span></td>
-                    <td style="padding: 14px 16px;">${vendedorNombre}</td>
-                    <td style="padding: 14px 16px;">
+                    <td class="td-bold">${App.escapeHtml(u.username)}</td>
+                    <td ><span class="status-badge" style="background:#e0e7ff; color:#4338ca;">${u.rol.toUpperCase()}</span></td>
+                    <td >${vendedorNombre}</td>
+                    <td >
                         ${u.debe_cambiar_clave 
                             ? '<span class="status-badge critical" style="font-size:0.65rem;">SÍ (Pendiente)</span>' 
                             : '<span class="status-badge dispatched" style="font-size:0.65rem;">NO (Cambiada)</span>'}
                     </td>
-                    <td style="padding: 14px 16px; text-align: right;">
+                    <td class="td-right">
                         <button class="admin-action-btn" onclick="App.openUsuarioModal(${JSON.stringify(u).replace(/"/g, '&quot;')})">
                             <i data-lucide="edit-2"></i>
                         </button>

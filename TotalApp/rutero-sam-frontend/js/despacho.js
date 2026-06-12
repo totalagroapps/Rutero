@@ -43,19 +43,19 @@ const DespachoController = {
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron productos.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state-text">No se encontraron productos.</td></tr>';
             return;
         }
 
         filtered.forEach(p => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;"><code>${App.escapeHtml(p.sku)}</code></td>
-                <td style="padding: 14px 16px; font-weight:500;">${App.escapeHtml(p.nombre)}</td>
-                <td style="padding: 14px 16px; font-weight:700;">
+                <td ><code>${App.escapeHtml(p.sku)}</code></td>
+                <td class="td-medium">${App.escapeHtml(p.nombre)}</td>
+                <td class="td-bold">
                     <input type="number" id="stock-input-${p.id}" value="${p.inventario_disponible}" min="0" style="width: 80px; padding: 6px; border: 1px solid rgba(0,0,0,0.1); border-radius: var(--border-radius-sm); font-weight:700; text-align:center;">
                 </td>
-                <td style="padding: 14px 16px; text-align: right;">
+                <td class="td-right">
                     <button class="btn btn-success btn-xs" onclick="App.handleUpdateStock(${p.id})" style="font-size:0.75rem; padding:6px 12px; background:#10b981; border-color:#10b981;">
                         <i data-lucide="save" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Guardar
                     </button>
@@ -110,7 +110,7 @@ const DespachoController = {
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron pedidos.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state-text">No se encontraron pedidos.</td></tr>';
             return;
         }
 
@@ -138,11 +138,11 @@ const DespachoController = {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;"><b>#PED-${p.id}</b></td>
-                <td style="padding: 14px 16px; font-weight:500;">${cliente.nombre}</td>
+                <td ><b>#PED-${p.id}</b></td>
+                <td class="td-medium">${cliente.nombre}</td>
                 <td style="padding: 14px 16px; font-size:0.75rem; color:var(--text-secondary);">${fecha}</td>
-                <td style="padding: 14px 16px;">${certHtml}</td>
-                <td style="padding: 14px 16px; text-align: right;">${actionHtml}</td>
+                <td >${certHtml}</td>
+                <td class="td-right">${actionHtml}</td>
             `;
             tbody.appendChild(tr);
         });

@@ -1835,3 +1835,83 @@ body:not(.role-cliente) .role-cliente-only {
 .autocomplete-suggestions li:hover {
     background: #f3f4f6;
 }
+
+/* ==================== GLOBAL UTILITIES & REFACTORED COMPONENTS ==================== */
+
+/* Replaces standard inline table padding */
+.admin-table td {
+    padding: 14px 16px;
+}
+
+/* Modifiers for table cells */
+.td-bold { font-weight: 700; }
+.td-medium { font-weight: 500; }
+.td-right { text-align: right; }
+.td-nowrap { white-space: nowrap; }
+
+/* Replaces inline input styles (width:100%; padding:8px; border-radius:...; margin-top:4px;) */
+.admin-input {
+    width: 100%;
+    padding: 8px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid rgba(0,0,0,0.1);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+/* Fallback for similar inputs that had padding 10px instead of 8px */
+.admin-input-lg {
+    width: 100%;
+    padding: 10px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid rgba(0,0,0,0.1);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* Empty state replacement */
+.empty-state-text {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+}
+
+/* Typography utilities */
+.text-sm-bold {
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.text-xs-bold {
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+.text-xs-muted {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.text-danger {
+    color: var(--danger-color);
+}
+.text-primary-bold {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+.grid-2-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.flex-col-gap {
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
