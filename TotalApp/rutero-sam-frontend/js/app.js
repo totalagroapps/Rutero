@@ -1391,7 +1391,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         // UX Phase 2: Bottom Sheet Toggle Logic
         const bottomSheetHandle = document.getElementById('bottom-sheet-handle');
         if (bottomSheetHandle) {
-            bottomSheetHandle.addEventListener('click', () => {
+            const toggleSheet = () => {
                 const sheet = document.getElementById('route-list-container');
                 sheet.classList.toggle('expanded');
                 setTimeout(() => {
@@ -1399,7 +1399,36 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
                         MapController.invalidateSize();
                     }
                 }, 300);
-            });
+            };
+
+            bottomSheetHandle.addEventListener('click', toggleSheet);
+
+            let touchStartY = 0;
+            const routeHeader = document.querySelector('#route-list-container .route-header');
+            const handleTouchStart = (e) => {
+                touchStartY = e.changedTouches[0].screenY;
+            };
+            const handleTouchEnd = (e) => {
+                const touchEndY = e.changedTouches[0].screenY;
+                const deltaY = touchEndY - touchStartY;
+                const sheet = document.getElementById('route-list-container');
+                const isExpanded = sheet.classList.contains('expanded');
+                
+                if (deltaY < -30 && !isExpanded) {
+                    toggleSheet();
+                } else if (deltaY > 30 && isExpanded) {
+                    toggleSheet();
+                }
+            };
+
+            bottomSheetHandle.addEventListener('touchstart', handleTouchStart, { passive: true });
+            bottomSheetHandle.addEventListener('touchend', handleTouchEnd, { passive: true });
+            
+            // Allow dragging from the header area too!
+            if (routeHeader) {
+                routeHeader.addEventListener('touchstart', handleTouchStart, { passive: true });
+                routeHeader.addEventListener('touchend', handleTouchEnd, { passive: true });
+            }
         }
 
         const btnOpt = document.getElementById('btn-optimize'); if(btnOpt) btnOpt.addEventListener('click', () => this.optimizeRouteByDistance());
