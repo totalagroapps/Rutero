@@ -648,7 +648,7 @@
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                         <div class="form-group" style="margin-bottom:0;">
                             <label style="font-size:0.75rem; font-weight:600;">PerÃƒÂ­odo</label>
-                            <select id="informe-periodo" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;" onchange="App.toggleRangoFechas()">
+                            <select id="informe-periodo" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;" onchange="InformesController.toggleRangoFechas()">
                                 <option value="hoy">Hoy</option>
                                 <option value="semana">Esta Semana</option>
                                 <option value="mes" selected>Este Mes</option>
@@ -676,7 +676,7 @@
                         </div>
                     </div>
 
-                    <button class="btn btn-primary btn-block" onclick="App.generarInformeAdmin()" style="margin-top:8px;">
+                    <button class="btn btn-primary btn-block" onclick="InformesController.generarInformeAdmin()" style="margin-top:8px;">
                         <i data-lucide="play"></i> Generar Informe
                     </button>
                 </div>
@@ -686,8 +686,8 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h3 style="font-size: 1.05rem;" id="informe-titulo-resultado">Resultados</h3>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn btn-outline btn-sm" onclick="App.exportarInformeActual('pdf')" title="Descargar PDF"><i data-lucide="file-text"></i> PDF</button>
-                            <button class="btn btn-outline btn-sm" onclick="App.exportarInformeActual('excel')" title="Descargar Excel"><i data-lucide="file-spreadsheet"></i> Excel</button>
+                            <button class="btn btn-outline btn-sm" onclick="InformesController.exportarInformeActual('pdf')" title="Descargar PDF"><i data-lucide="file-text"></i> PDF</button>
+                            <button class="btn btn-outline btn-sm" onclick="InformesController.exportarInformeActual('excel')" title="Descargar Excel"><i data-lucide="file-spreadsheet"></i> Excel</button>
                         </div>
                     </div>
                     
@@ -854,7 +854,7 @@
                         <i data-lucide="upload"></i> Importar
                         <input type="file" id="file-vendedores-excel" accept=".xlsx" style="display:none;" onchange="App.handleUploadVendedoresExcel(event)">
                     </label>
-                    <button class="btn btn-primary btn-sm" onclick="App.openVendedorModal()">
+                    <button class="btn btn-primary btn-sm" onclick="AdminController.openVendedorModal()">
                         <i data-lucide="plus"></i> Nuevo
                     </button>
                 </div>
@@ -888,7 +888,7 @@
                         <i data-lucide="upload-cloud"></i> Importar
                     </button>
                     <input type="file" id="input-import-clientes" accept=".xlsx" style="display:none;" onchange="App.importClientesExcel(event)">
-                    <button class="btn btn-primary btn-sm" onclick="App.openClienteAdminModal()">
+                    <button class="btn btn-primary btn-sm" onclick="AdminController.openClienteAdminModal()">
                         <i data-lucide="plus"></i> Nuevo
                     </button>
                 </div>
@@ -947,7 +947,7 @@
                         <i data-lucide="upload"></i> Importar
                         <input type="file" id="file-productos-excel" accept=".xlsx" style="display:none;" onchange="App.handleUploadProductosExcel(event)">
                     </label>
-                    <button class="btn btn-primary btn-sm" onclick="App.openProductoModal()">
+                    <button class="btn btn-primary btn-sm" onclick="AdminController.openProductoModal()">
                         <i data-lucide="plus"></i> Nuevo
                     </button>
                 </div>
@@ -1012,7 +1012,7 @@
         <section id="view-admin-usuarios" class="app-view">
             <div class="route-header" style="margin-bottom:16px;">
                 <span>GestiÃƒÂ³n de Usuarios de Acceso</span>
-                <button class="btn btn-primary btn-sm" onclick="App.openUsuarioModal()">
+                <button class="btn btn-primary btn-sm" onclick="AdminController.openUsuarioModal()">
                     <i data-lucide="plus"></i> Nuevo
                 </button>
             </div>
@@ -1170,6 +1170,9 @@
     <script src="js/map.js"></script>
     <script src="js/pdf.js"></script>
     <script src="js/modals.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/despacho.js"></script>
+    <script src="js/informes.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

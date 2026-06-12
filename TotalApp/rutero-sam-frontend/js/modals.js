@@ -85,7 +85,7 @@ const AppModals = {
                 <h3 id="modal-vendedor-title">Nuevo Vendedor</h3>
                 <button class="btn-close-modal" onclick="App.closeVendedorModal()">×</button>
             </div>
-            <form id="form-admin-vendedor" onsubmit="App.handleSaveVendedor(event)" style="padding-top: 12px;">
+            <form id="form-admin-vendedor" onsubmit="AdminController.handleSaveVendedor(event)" style="padding-top: 12px;">
                 <input type="hidden" id="admin-vendedor-id">
                 <div class="form-group" style="margin-bottom:14px;">
                     <label for="admin-vendedor-nombre" style="font-size:0.75rem; font-weight:700;">Nombre Completo *</label>
@@ -107,7 +107,7 @@ const AppModals = {
                 <h3 id="modal-cliente-admin-title">Nuevo Comercio</h3>
                 <button class="btn-close-modal" onclick="App.closeClienteAdminModal()">×</button>
             </div>
-            <form id="form-admin-cliente" onsubmit="App.handleSaveClienteAdmin(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-admin-cliente" onsubmit="AdminController.handleSaveClienteAdmin(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
                 <input type="hidden" id="admin-cliente-id">
                 <input type="hidden" id="admin-cliente-uuid">
                 
@@ -190,7 +190,7 @@ const AppModals = {
                 <h3 id="modal-producto-title">Nuevo Producto</h3>
                 <button class="btn-close-modal" onclick="App.closeProductoModal()">×</button>
             </div>
-            <form id="form-admin-producto" onsubmit="App.handleSaveProducto(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-admin-producto" onsubmit="AdminController.handleSaveProducto(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
                 <input type="hidden" id="admin-producto-id">
                 <div class="form-group">
                     <label for="admin-producto-sku" style="font-size:0.72rem; font-weight:700;">SKU *</label>
@@ -263,7 +263,7 @@ const AppModals = {
                 <h3>Certificar Despacho</h3>
                 <button class="btn-close-modal" onclick="App.closeCertificarModal()">×</button>
             </div>
-            <form id="form-certificar-pedido" onsubmit="App.handleSaveCertificacion(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-certificar-pedido" onsubmit="DespachoController.handleSaveCertificacion(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
                 <input type="hidden" id="certificar-pedido-id">
                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
                     <span style="font-weight:700;">Pedido ID:</span> <span id="certificar-pedido-label">#12</span><br>
@@ -287,7 +287,7 @@ const AppModals = {
                 <h3 id="modal-usuario-title">Nuevo Usuario</h3>
                 <button class="btn-close-modal" onclick="App.closeUsuarioModal()">×</button>
             </div>
-            <form id="form-admin-usuario" onsubmit="App.handleSaveUsuario(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
+            <form id="form-admin-usuario" onsubmit="AdminController.handleSaveUsuario(event)" style="padding-top: 12px; display:flex; flex-direction:column; gap:12px;">
                 <input type="hidden" id="admin-usuario-id">
                 <div class="form-group">
                     <label for="admin-usuario-username" style="font-size:0.72rem; font-weight:700;">Nombre de Usuario (Username) *</label>
@@ -300,7 +300,7 @@ const AppModals = {
                 </div>
                 <div class="form-group">
                     <label for="admin-usuario-rol" style="font-size:0.72rem; font-weight:700;">Rol del Sistema *</label>
-                    <select id="admin-usuario-rol" required onchange="App.handleUserRolChange()" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
+                    <select id="admin-usuario-rol" required onchange="AdminController.handleUserRolChange()" style="width:100%; padding:8px; border-radius:var(--border-radius-sm); border:1px solid rgba(0,0,0,0.1); font-family:var(--font-body); font-size:0.8rem; margin-top:4px;">
                         <option value="vendedor">Vendedor</option>
                         <option value="despacho">Despacho / Bodega</option>
                         <option value="admin">Administrador</option>

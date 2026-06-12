@@ -166,31 +166,31 @@ const App = {
         } else if (viewName === 'config') {
             this.loadSettings();
         } else if (viewName === 'despacho-dashboard') {
-            this.loadDespachoData();
+            DespachoController.loadDespachoData();
         } else if (viewName === 'despacho-inventario') {
-            this.renderDespachoInventario();
+            DespachoController.renderDespachoInventario();
         } else if (viewName === 'despacho-certificar') {
-            this.renderDespachoCertificar();
+            DespachoController.renderDespachoCertificar();
         } else if (viewName === 'admin-dashboard') {
-            this.loadAdminStats();
+            AdminController.loadAdminStats();
         } else if (viewName === 'admin-vendedores') {
-            this.renderAdminVendedores();
+            AdminController.renderAdminVendedores();
         } else if (viewName === 'admin-clientes') {
-            this.renderAdminClientes();
+            AdminController.renderAdminClientes();
         } else if (viewName === 'admin-rutas') {
             AdminMapController.init('admin-map');
-            this.populateAdminRouteVendedoresSelector();
-            this.loadAdminRouteOnMap();
+            AdminController.populateAdminRouteVendedoresSelector();
+            AdminController.loadAdminRouteOnMap();
         } else if (viewName === 'admin-productos') {
-            this.renderAdminProductos();
+            AdminController.renderAdminProductos();
         } else if (viewName === 'admin-pedidos') {
-            this.renderAdminPedidos();
+            AdminController.renderAdminPedidos();
         } else if (viewName === 'admin-usuarios') {
-            this.renderAdminUsuarios();
+            AdminController.renderAdminUsuarios();
         } else if (viewName === 'cartera') {
             this.renderMainCartera();
         } else if (viewName === 'admin-informes') {
-            this.renderAdminInformes('mes');
+            InformesController.renderAdminInformes('mes');
         }
 
         this.refreshIcons();
@@ -440,7 +440,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
             document.getElementById('header-title').innerText = "TotalAPP Admin";
             document.getElementById('vendedor-nombre').innerText = "Administrador del Sistema";
             this.navigateToView('admin-dashboard');
-            this.loadAdminData();
+            AdminController.loadAdminData();
         } else if (this.state.activeRole === 'despacho') {
             document.getElementById('header-title').innerText = "TotalAPP Despacho";
             document.getElementById('vendedor-nombre').innerText = "Bodega y Logística";
@@ -2075,7 +2075,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         const despStockSearch = document.getElementById('despacho-stock-search');
         if (despStockSearch) {
             despStockSearch.addEventListener('input', (e) => {
-                this.renderDespachoInventario(e.target.value);
+                DespachoController.renderDespachoInventario(e.target.value);
             });
         }
 
@@ -2083,7 +2083,7 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
         const despPedidosSearch = document.getElementById('despacho-pedidos-search');
         if (despPedidosSearch) {
             despPedidosSearch.addEventListener('input', (e) => {
-                this.renderDespachoCertificar(e.target.value);
+                DespachoController.renderDespachoCertificar(e.target.value);
             });
         }
     },
@@ -2319,1064 +2319,35 @@ AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-carter
 
     // ==================== ADMIN METHODS ====================
 
-    // Load admin tables and stats
-    async loadAdminData() {
-        try {
-            this.state.adminVendedores = await ApiClient.getAdminVendedores();
-            this.state.adminClientes = await ApiClient.getAdminClientes();
-            this.state.adminProductos = await ApiClient.getAdminProductos();
-            this.state.adminPedidos = await ApiClient.getAdminPedidos();
-            
-            // Populate vendedor selector in route map view and clients modal
-            this.populateAdminRouteVendedoresSelector();
-            this.populateAdminClientVendedoresSelector();
-        } catch (e) {
-            console.error("Error loading admin data", e);
-            this.showToast("Error al cargar datos del servidor.", true);
-        }
-    },
+    // Load admin tables and stats
 
-    async loadAdminStats() {
-        try {
-            const stats = await ApiClient.getAdminStats();
-            
-            document.getElementById('admin-total-ventas').innerText = `$${parseFloat(stats.total_ventas).toLocaleString('es-CO', { minimumFractionDigits: 2 })}`;
-            document.getElementById('admin-pedidos-despachados').innerText = stats.pedidos_despachados;
-            document.getElementById('admin-pedidos-pendientes').innerText = stats.pedidos_pendientes;
-            document.getElementById('admin-total-vendedores').innerText = stats.total_vendedores;
+    // Render Vendedores list
 
-            this.renderAdminStatsChart(stats);
-        } catch (e) {
-            console.error("Error loading admin stats", e);
-        }
-    },
+    // Render Clientes list
 
-    renderAdminStatsChart(stats) {
-        const canvas = document.getElementById('chart-pedidos-estado');
-        if (!canvas) return;
+    // Render Productos catalog
 
-        if (this.state.adminChart) {
-            this.state.adminChart.destroy();
-        }
+    // Render global Pedidos list
 
-        this.state.adminChart = new Chart(canvas, {
-            type: 'doughnut',
-            data: {
-                labels: ['Pendientes', 'Despachados', 'Cancelados'],
-                datasets: [{
-                    data: [stats.pedidos_pendientes, stats.pedidos_despachados, stats.pedidos_cancelados],
-                    backgroundColor: ['#f59e0b', '#10b981', '#ef4444'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { family: 'Plus Jakarta Sans', size: 11 }
-                        }
-                    }
-                }
-            }
-        });
-    },
+    // Admin: Update order status (dispatch or cancel)
 
-    // Render Vendedores list
-    renderAdminVendedores() {
-        const tbody = document.getElementById('tbody-vendedores');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+    // Populate sellers selectors in admin forms
 
-        if (!this.state.adminVendedores || this.state.adminVendedores.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-secondary);">No hay vendedores registrados.</td></tr>';
-            return;
-        }
+    // Render seller route on admin map view
 
-        this.state.adminVendedores.forEach(v => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding: 14px 16px;"><b>${v.id}</b></td>
-                <td style="padding: 14px 16px; font-weight:500;">${this.escapeHtml(v.nombre)}</td>
-                <td style="padding: 14px 16px; color:var(--text-secondary);">${this.escapeHtml(v.zona)}</td>
-                <td style="padding: 14px 16px; text-align: right;">
-                    <button class="admin-action-btn" onclick="App.openVendedorModal(${JSON.stringify(v).replace(/"/g, '&quot;')})">
-                        <i data-lucide="edit-2"></i>
-                    </button>
-                    <button class="admin-action-btn delete" onclick="App.deleteVendedor(${v.id})">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        this.refreshIcons();
-    },
+    // Vendedores Modals & CRUD
 
-    // Render Clientes list
-    renderAdminClientes() {
-        const tbody = document.getElementById('tbody-clientes');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+    // Clientes Modals & CRUD
 
-        const searchQuery = (document.getElementById('admin-cliente-search')?.value || '').toLowerCase().trim();
+    // Productos Modals & CRUD
 
-        const filtered = this.state.adminClientes.filter(c => {
-            const matchesSearch = c.nombre.toLowerCase().includes(searchQuery) || 
-                                  c.codigo_pdv.toLowerCase().includes(searchQuery) ||
-                                  (c.encargado && c.encargado.toLowerCase().includes(searchQuery));
-            return matchesSearch;
-        });
+    // ==================== DESPACHO / BODEGA METHODS ====================
 
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron comercios.</td></tr>';
-            return;
-        }
+    // ==================== ADMIN USUARIOS CRUD ====================
 
-        filtered.forEach(c => {
-            const vendedor = this.state.adminVendedores.find(v => v.id === c.vendedor_id);
-            const vendedorNombre = vendedor ? vendedor.nombre : '<span style="color:var(--danger-color);">Sin asignar</span>';
-            const estadoBadge = c.activo 
-                ? '<span class="status-badge dispatched">Activo</span>' 
-                : '<span class="status-badge inactive">Inactivo</span>';
+    // ==================== ADMIN INFORMES ====================
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding: 14px 16px;">
-                    <div style="font-weight:600; color:var(--text-primary);">${this.escapeHtml(c.nombre)}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${this.escapeHtml(c.codigo_pdv)} · ${c.encargado || 'Sin encargado'}</div>
-                </td>
-                <td style="padding: 14px 16px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary);">${this.escapeHtml(c.direccion)}</td>
-                <td style="padding: 14px 16px; font-weight:500;">${vendedorNombre}</td>
-                <td style="padding: 14px 16px; font-weight:700;">#${c.secuencia_ruta}</td>
-                <td style="padding: 14px 16px;">${estadoBadge}</td>
-                <td style="padding: 14px 16px; text-align: right; white-space:nowrap;">
-                    <button class="admin-action-btn" onclick="App.openClienteAdminModal(${JSON.stringify(c).replace(/"/g, '&quot;')})">
-                        <i data-lucide="edit-2"></i>
-                    </button>
-                    <button class="admin-action-btn delete" onclick="App.deleteClienteAdmin(${c.id})">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        // Add search event listener once
-        const searchInput = document.getElementById('admin-cliente-search');
-        if (searchInput && !searchInput.dataset.hasListener) {
-            searchInput.dataset.hasListener = 'true';
-            searchInput.addEventListener('input', () => this.renderAdminClientes());
-        }
-        this.refreshIcons();
-    },
-
-    // Render Productos catalog
-    renderAdminProductos() {
-        const tbody = document.getElementById('tbody-productos');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        const searchQuery = (document.getElementById('admin-producto-search')?.value || '').toLowerCase().trim();
-
-        const filtered = this.state.adminProductos.filter(p => {
-            return p.nombre.toLowerCase().includes(searchQuery) || p.sku.toLowerCase().includes(searchQuery);
-        });
-
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron productos.</td></tr>';
-            return;
-        }
-
-        filtered.forEach(p => {
-            const estadoBadge = p.activo 
-                ? '<span class="status-badge dispatched">Disponible</span>' 
-                : '<span class="status-badge inactive">Oculto</span>';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding: 14px 16px;"><code>${this.escapeHtml(p.sku)}</code></td>
-                <td style="padding: 14px 16px; font-weight:500;">${this.escapeHtml(p.nombre)}</td>
-                <td style="padding:12px 16px;">$${parseFloat(p.precio_directo).toLocaleString('es-CO')}</td>
-                <td style="padding:12px 16px;">${p.precio_distribuidor ? '$' + parseFloat(p.precio_distribuidor).toLocaleString('es-CO') : '-'}</td>
-                <td style="padding:12px 16px;">${p.inventario_disponible}</td>
-                <td style="padding: 14px 16px;">${estadoBadge}</td>
-                <td style="padding: 14px 16px; text-align: right;">
-                    <button class="admin-action-btn" onclick="App.openProductoModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-                        <i data-lucide="edit-2"></i>
-                    </button>
-                    <button class="admin-action-btn delete" onclick="App.deleteAdminProducto(${p.id})">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        const searchInput = document.getElementById('admin-producto-search');
-        if (searchInput && !searchInput.dataset.hasListener) {
-            searchInput.dataset.hasListener = 'true';
-            searchInput.addEventListener('input', () => this.renderAdminProductos());
-        }
-        this.refreshIcons();
-    },
-
-    // Render global Pedidos list
-    renderAdminPedidos() {
-        const tbody = document.getElementById('tbody-pedidos');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        if (!this.state.adminPedidos || this.state.adminPedidos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">No se han tomado pedidos todavía.</td></tr>';
-            return;
-        }
-
-        this.state.adminPedidos.forEach(p => {
-            const cliente = this.state.adminClientes.find(c => c.id === p.cliente_id);
-            const vendedor = this.state.adminVendedores.find(v => v.id === p.vendedor_id);
-            
-            const clienteNombre = cliente ? cliente.nombre : `Comercio #${p.cliente_id}`;
-            const vendedorNombre = vendedor ? vendedor.nombre : `Vendedor #${p.vendedor_id}`;
-            const fecha = new Date(p.fecha_hora).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
-
-            let estadoClass = 'pending';
-            if (p.estado_sincronizacion === 'DESPACHADO') estadoClass = 'dispatched';
-            if (p.estado_sincronizacion === 'CANCELADO') estadoClass = 'canceled';
-
-            let actionButtons = '';
-            if (p.estado_sincronizacion === 'PENDIENTE') {
-                actionButtons = `
-                    <button class="btn btn-success btn-xs" onclick="App.updatePedidoStatusAdmin(${p.id}, 'DESPACHADO')" style="font-size:0.65rem; padding:4px 8px; margin-right:4px;">Despachar</button>
-                    <button class="btn btn-danger btn-xs" onclick="App.updatePedidoStatusAdmin(${p.id}, 'CANCELADO')" style="font-size:0.65rem; padding:4px 8px;">Cancelar</button>
-                `;
-            } else {
-                actionButtons = `<span style="font-size:0.72rem; color:var(--text-muted);">Sin acciones</span>`;
-            }
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding: 14px 16px;">
-                    <div style="font-weight:600; color:var(--text-primary);">#${p.id}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${fecha}</div>
-                </td>
-                <td style="padding: 14px 16px; font-weight:500;">${clienteNombre}</td>
-                <td style="padding: 14px 16px; color:var(--text-secondary);">${vendedorNombre}</td>
-                <td style="padding: 14px 16px; font-weight:700; color:var(--text-primary);">$${parseFloat(p.total).toLocaleString('es-CO')}</td>
-                <td style="padding: 14px 16px;"><span class="status-badge ${estadoClass}">${p.estado_sincronizacion}</span></td>
-                <td style="padding: 14px 16px; text-align: right; white-space:nowrap;">
-                    ${actionButtons}
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        this.refreshIcons();
-    },
-
-    // Admin: Update order status (dispatch or cancel)
-    async updatePedidoStatusAdmin(pedidoId, nuevoEstado) {
-        const action = nuevoEstado === 'DESPACHADO' ? 'despachar' : 'cancelar';
-        if (!confirm(`¿Estás seguro de ${action} este pedido?`)) return;
-
-        this.showToast(`Actualizando pedido #${pedidoId}...`);
-
-        try {
-            await ApiClient.updatePedidoStatus(pedidoId, nuevoEstado);
-            this.showToast(`Pedido ${nuevoEstado === 'DESPACHADO' ? 'despachado' : 'cancelado'} con éxito.`);
-            await this.loadAdminData();
-            this.renderAdminPedidos();
-        } catch (err) {
-            this.showToast(err.message || 'Error al actualizar el pedido.', true);
-        }
-    },
-
-    // Populate sellers selectors in admin forms
-    populateAdminRouteVendedoresSelector() {
-        const select = document.getElementById('admin-select-vendedor-ruta');
-        if (!select) return;
-        
-        const currentVal = select.value;
-        select.innerHTML = '';
-
-        if (!this.state.adminVendedores || this.state.adminVendedores.length === 0) {
-            select.innerHTML = '<option value="">No hay vendedores</option>';
-            return;
-        }
-
-        this.state.adminVendedores.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v.id;
-            opt.innerText = `${this.escapeHtml(v.nombre)} (${this.escapeHtml(v.zona)})`;
-            select.appendChild(opt);
-        });
-
-        if (currentVal && [...select.options].some(o => o.value === currentVal)) {
-            select.value = currentVal;
-        }
-    },
-
-    populateAdminClientVendedoresSelector() {
-        const select = document.getElementById('admin-cliente-vendedor');
-        if (!select) return;
-        select.innerHTML = '<option value="">Sin vendedor asignado</option>';
-
-        if (this.state.adminVendedores) {
-            this.state.adminVendedores.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.id;
-                opt.innerText = `${this.escapeHtml(v.nombre)} (${this.escapeHtml(v.zona)})`;
-                select.appendChild(opt);
-            });
-        }
-    },
-
-    // Render seller route on admin map view
-    loadAdminRouteOnMap() {
-        const select = document.getElementById('admin-select-vendedor-ruta');
-        if (!select || !select.value) return;
-
-        const vendedorId = parseInt(select.value, 10);
-        
-        // Filter clients assigned to this seller
-        const clientsForSeller = this.state.adminClientes
-            .filter(c => c.vendedor_id === vendedorId && c.activo)
-            .sort((a, b) => a.secuencia_ruta - b.secuencia_ruta);
-
-        // Fetch visit states if available (simulated or real from pending orders)
-        const visitStates = {};
-        if (this.state.adminPedidos) {
-            this.state.adminPedidos.forEach(p => {
-                if (p.vendedor_id === vendedorId) {
-                    const client = this.state.clientes.find(c => c.id === p.cliente_id);
-                    if (client) visitStates[client.codigo_pdv] = p.estado_sincronizacion === 'CANCELADO' ? 'no-sale' : 'visited';
-                }
-            });
-        }
-
-        AdminMapController.renderRoute(clientsForSeller, visitStates);
-    },
-
-    // Vendedores Modals & CRUD
-    openVendedorModal(vendedor = null) {
-        AppModals.inject('modal-admin-vendedor');
-        document.getElementById('form-admin-vendedor').reset();
-        document.getElementById('admin-vendedor-id').value = '';
-        
-        if (vendedor) {
-            AppModals.inject('modal-vendedor-title'); document.getElementById('modal-vendedor-title').innerText = "Editar Vendedor";
-            document.getElementById('admin-vendedor-id').value = vendedor.id;
-            document.getElementById('admin-vendedor-nombre').value = vendedor.nombre;
-            document.getElementById('admin-vendedor-zona').value = vendedor.zona;
-        } else {
-            AppModals.inject('modal-vendedor-title'); document.getElementById('modal-vendedor-title').innerText = "Nuevo Vendedor";
-        }
-        
-        AppModals.inject('modal-admin-vendedor');
-AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-vendedor').classList.remove('hidden');
-    },
-
-    closeVendedorModal() {
-        AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-vendedor').classList.add('hidden');
-    },
-
-    async handleSaveVendedor(e) {
-        e.preventDefault();
-        const id = document.getElementById('admin-vendedor-id').value;
-        const vendedor = {
-            nombre: document.getElementById('admin-vendedor-nombre').value.trim(),
-            zona: document.getElementById('admin-vendedor-zona').value.trim()
-        };
-        if (id) vendedor.id = parseInt(id, 10);
-
-        try {
-            await ApiClient.saveAdminVendedor(vendedor);
-            this.showToast("Vendedor guardado con éxito.");
-            this.closeVendedorModal();
-            await this.loadAdminData();
-            this.renderAdminVendedores();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    async deleteVendedor(id) {
-        if (!confirm("¿Estás seguro de eliminar este vendedor?")) return;
-
-        try {
-            await ApiClient.deleteAdminVendedor(id);
-            this.showToast("Vendedor eliminado.");
-            await this.loadAdminData();
-            this.renderAdminVendedores();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    // Clientes Modals & CRUD
-    async importClientesExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        this.showToast("Subiendo y procesando Excel...");
-        try {
-            const result = await ApiClient.uploadAdminClientesExcel(file);
-            this.showToast(result.message || "Clientes importados correctamente");
-            this.loadAdminView('clientes');
-        } catch (err) {
-            console.error(err);
-            this.showToast(err.message, true);
-        }
-        event.target.value = ''; // Reset input
-    },
-
-    openClienteAdminModal(cliente = null) {
-        AppModals.inject('modal-admin-cliente');
-        document.getElementById('form-admin-cliente').reset();
-        document.getElementById('admin-cliente-id').value = '';
-        document.getElementById('admin-cliente-uuid').value = '';
-        document.getElementById('admin-cliente-activo').checked = true;
-
-        if (cliente) {
-            AppModals.inject('modal-cliente-admin-title'); document.getElementById('modal-cliente-admin-title').innerText = "Editar Comercio";
-            document.getElementById('admin-cliente-id').value = cliente.id;
-            document.getElementById('admin-cliente-uuid').value = cliente.uuid_dispositivo || '';
-            document.getElementById('admin-cliente-codigo').value = cliente.codigo_pdv;
-            document.getElementById('admin-cliente-nombre').value = cliente.nombre;
-            document.getElementById('admin-cliente-encargado').value = cliente.encargado || '';
-            document.getElementById('admin-cliente-direccion').value = cliente.direccion;
-            document.getElementById('admin-cliente-lat').value = cliente.latitud || '';
-            document.getElementById('admin-cliente-lng').value = cliente.longitud || '';
-            document.getElementById('admin-cliente-secuencia').value = cliente.secuencia_ruta;
-            document.getElementById('admin-cliente-vendedor').value = cliente.vendedor_id || '';
-            document.getElementById('admin-cliente-activo').checked = cliente.activo;
-            document.getElementById('admin-cliente-tipo').value = cliente.tipo_cliente || 'directo';
-            
-            setTimeout(() => {
-                PickerMapController.init('admin-cliente-picker-map', 'admin-cliente-lat', 'admin-cliente-lng', 'admin-cliente-direccion');
-                if (cliente.latitud && cliente.longitud) {
-                    PickerMapController.setCenter('admin-cliente-picker-map', cliente.latitud, cliente.longitud);
-                }
-            }, 300);
-        } else {
-            AppModals.inject('modal-cliente-admin-title'); document.getElementById('modal-cliente-admin-title').innerText = "Nuevo Comercio";
-            document.getElementById('admin-cliente-secuencia').value = this.state.adminClientes.length + 1;
-            document.getElementById('admin-cliente-codigo').value = `PDV${String(this.state.adminClientes.length + 1).padStart(3, '0')}`;
-            
-            setTimeout(() => {
-                PickerMapController.init('admin-cliente-picker-map', 'admin-cliente-lat', 'admin-cliente-lng', 'admin-cliente-direccion');
-            }, 300);
-        }
-
-        AppModals.inject('modal-admin-cliente');
-AppModals.inject('modal-admin-cliente'); document.getElementById('modal-admin-cliente').classList.remove('hidden');
-    },
-
-    closeClienteAdminModal() {
-        AppModals.inject('modal-admin-cliente'); document.getElementById('modal-admin-cliente').classList.add('hidden');
-    },
-
-    async handleSaveClienteAdmin(e) {
-        e.preventDefault();
-        const id = document.getElementById('admin-cliente-id').value;
-        
-        const latVal = document.getElementById('admin-cliente-lat').value;
-        const lngVal = document.getElementById('admin-cliente-lng').value;
-        const vendVal = document.getElementById('admin-cliente-vendedor').value;
-
-        const cliente = {
-            codigo_pdv: document.getElementById('admin-cliente-codigo').value.trim(),
-            nombre: document.getElementById('admin-cliente-nombre').value.trim(),
-            encargado: document.getElementById('admin-cliente-encargado').value.trim() || null,
-            direccion: document.getElementById('admin-cliente-direccion').value.trim(),
-            latitud: latVal ? parseFloat(latVal) : null,
-            longitud: lngVal ? parseFloat(lngVal) : null,
-            frecuencia: document.getElementById('admin-cliente-frecuencia').value,
-            secuencia_ruta: parseInt(document.getElementById('admin-cliente-secuencia').value, 10),
-            vendedor_id: vendVal ? parseInt(vendVal, 10) : null,
-            activo: document.getElementById('admin-cliente-activo').checked,
-            uuid_dispositivo: document.getElementById('admin-cliente-uuid').value || this.generateUUID(),
-            tipo_cliente: document.getElementById('admin-cliente-tipo').value
-        };
-        if (id) cliente.id = parseInt(id, 10);
-
-        try {
-            await ApiClient.saveAdminCliente(cliente);
-            this.showToast("Comercio guardado con éxito.");
-            this.closeClienteAdminModal();
-            await this.loadAdminData();
-            this.renderAdminClientes();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    async deleteClienteAdmin(id) {
-        if (!confirm("¿Estás seguro de desactivar este comercio?")) return;
-
-        try {
-            await ApiClient.deleteAdminCliente(id);
-            this.showToast("Comercio desactivado.");
-            await this.loadAdminData();
-            this.renderAdminClientes();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    // Productos Modals & CRUD
-    openProductoModal(prod = null) {
-        AppModals.inject('modal-admin-producto');
-        document.getElementById('form-admin-producto').reset();
-        document.getElementById('admin-producto-id').value = prod ? prod.id : '';
-        document.getElementById('admin-producto-sku').value = prod ? prod.sku : '';
-        document.getElementById('admin-producto-nombre').value = prod ? prod.nombre : '';
-        document.getElementById('admin-producto-precio-directo').value = prod ? prod.precio_directo : '';
-        document.getElementById('admin-producto-precio-distribuidor').value = prod ? (prod.precio_distribuidor || '') : '';
-        document.getElementById('admin-producto-stock').value = prod ? prod.inventario_disponible : 0;
-        document.getElementById('admin-producto-activo').checked = prod ? prod.activo : true;
-
-        if (prod) {
-            AppModals.inject('modal-producto-title'); document.getElementById('modal-producto-title').innerText = "Editar Producto";
-        } else {
-            AppModals.inject('modal-producto-title'); document.getElementById('modal-producto-title').innerText = "Nuevo Producto";
-        }
-
-        AppModals.inject('modal-admin-producto');
-AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-producto').classList.remove('hidden');
-    },
-
-    closeProductoModal() {
-        AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-producto').classList.add('hidden');
-    },
-
-    async handleSaveProducto(e) {
-        e.preventDefault();
-        const id = document.getElementById('admin-producto-id').value;
-        const pd = parseFloat(document.getElementById('admin-producto-precio-directo').value);
-        const pdistRaw = document.getElementById('admin-producto-precio-distribuidor').value;
-        const pdist = pdistRaw ? parseFloat(pdistRaw) : null;
-        
-        const producto = {
-            sku: document.getElementById('admin-producto-sku').value.trim(),
-            nombre: document.getElementById('admin-producto-nombre').value.trim(),
-            precio_directo: pd,
-            precio_distribuidor: pdist,
-            inventario_disponible: parseInt(document.getElementById('admin-producto-stock').value, 10),
-            activo: document.getElementById('admin-producto-activo').checked
-        };
-        if (id) producto.id = parseInt(id, 10);
-
-        try {
-            await ApiClient.saveAdminProducto(producto);
-            this.showToast("Producto guardado con éxito.");
-            this.closeProductoModal();
-            await this.loadAdminData();
-            this.renderAdminProductos();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    async deleteAdminProducto(id) {
-        if (!confirm("¿Estás seguro de ocultar/desactivar este producto?")) return;
-
-        try {
-            await ApiClient.deleteAdminProducto(id);
-            this.showToast("Producto desactivado.");
-            await this.loadAdminData();
-            this.renderAdminProductos();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    // ==================== DESPACHO / BODEGA METHODS ====================
-    async loadDespachoData() {
-        try {
-            this.showToast("Cargando datos de despacho...");
-            const pedidos = await ApiClient.getDespachoPedidos();
-            this.state.despachoPedidos = pedidos;
-
-            const catalogo = await ApiClient.getCatalogo();
-            this.state.catalogo = catalogo;
-            localStorage.setItem('sam_cache_catalogo', JSON.stringify(catalogo));
-
-            this.renderDespachoDashboard();
-        } catch (e) {
-            console.error("Error loading despacho data", e);
-            this.showToast("Error al cargar datos del servidor.", true);
-        }
-    },
-
-    renderDespachoDashboard() {
-        if (!this.state.despachoPedidos) this.state.despachoPedidos = [];
-        if (!this.state.catalogo) this.state.catalogo = [];
-
-        const pendingCount = this.state.despachoPedidos.filter(o => o.estado_sincronizacion === 'PENDIENTE').length;
-        document.getElementById('despacho-pending-count').innerText = pendingCount.toString();
-
-        const lowStockCount = this.state.catalogo.filter(p => p.inventario_disponible < 20).length;
-        document.getElementById('despacho-stock-alert-count').innerText = lowStockCount.toString();
-    },
-
-    renderDespachoInventario(filterText = '') {
-        const tbody = document.getElementById('tbody-despacho-stock');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        const query = filterText.toLowerCase().trim();
-        const filtered = this.state.catalogo.filter(p => {
-            return p.nombre.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query);
-        });
-
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron productos.</td></tr>';
-            return;
-        }
-
-        filtered.forEach(p => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding: 14px 16px;"><code>${this.escapeHtml(p.sku)}</code></td>
-                <td style="padding: 14px 16px; font-weight:500;">${this.escapeHtml(p.nombre)}</td>
-                <td style="padding: 14px 16px; font-weight:700;">
-                    <input type="number" id="stock-input-${p.id}" value="${p.inventario_disponible}" min="0" style="width: 80px; padding: 6px; border: 1px solid rgba(0,0,0,0.1); border-radius: var(--border-radius-sm); font-weight:700; text-align:center;">
-                </td>
-                <td style="padding: 14px 16px; text-align: right;">
-                    <button class="btn btn-success btn-xs" onclick="App.handleUpdateStock(${p.id})" style="font-size:0.75rem; padding:6px 12px; background:#10b981; border-color:#10b981;">
-                        <i data-lucide="save" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Guardar
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        this.refreshIcons();
-    },
-
-    async handleUpdateStock(productoId) {
-        const input = document.getElementById(`stock-input-${productoId}`);
-        const stock = parseInt(input.value, 10);
-        
-        if (isNaN(stock) || stock < 0) {
-            this.showToast("Ingresa un stock válido.", true);
-            return;
-        }
-
-        this.showToast("Actualizando stock...");
-
-        try {
-            const updatedProd = await ApiClient.updateProductoStock(productoId, stock);
-            
-            const idx = this.state.catalogo.findIndex(p => p.id === productoId);
-            if (idx !== -1) {
-                this.state.catalogo[idx] = updatedProd;
-                localStorage.setItem('sam_cache_catalogo', JSON.stringify(this.state.catalogo));
-            }
-
-            this.showToast("Stock actualizado con éxito.");
-            this.renderDespachoDashboard();
-            this.renderDespachoInventario(document.getElementById('despacho-stock-search').value);
-        } catch (err) {
-            this.showToast("Error al actualizar stock.", true);
-        }
-    },
-
-    renderDespachoCertificar(filterText = '') {
-        const tbody = document.getElementById('tbody-despacho-pedidos');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        const query = filterText.toLowerCase().trim();
-        const filtered = this.state.despachoPedidos.filter(p => {
-            const cliente = this.state.clientes.find(c => c.id === p.cliente_id) || { nombre: '' };
-            return cliente.nombre.toLowerCase().includes(query) || p.id.toString().includes(query);
-        });
-
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-secondary);">No se encontraron pedidos.</td></tr>';
-            return;
-        }
-
-        filtered.forEach(p => {
-            const cliente = this.state.clientes.find(c => c.id === p.cliente_id) || { nombre: `Comercio #${p.cliente_id}` };
-            const fecha = new Date(p.fecha_hora).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
-            
-            let certHtml = '';
-            let actionHtml = '';
-
-            if (p.estado_sincronizacion === 'PENDIENTE') {
-                certHtml = '<span style="color:var(--text-muted); font-style:italic;">Pendiente de certificar</span>';
-                actionHtml = `
-                    <button class="btn btn-primary btn-xs" onclick="App.openCertificarModal(${p.id}, '${cliente.nombre.replace(/'/g, "\\'")}')" style="font-size:0.75rem; padding:6px 12px; background:#3b82f6; border-color:#3b82f6;">
-                        Certificar
-                    </button>
-                `;
-            } else if (p.estado_sincronizacion === 'DESPACHADO') {
-                certHtml = `<div style="max-width:180px; font-size:0.75rem; color:var(--text-secondary); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${p.certificacion_despacho || ''}"><b>Certificado:</b> ${p.certificacion_despacho || 'Despachado'}</div>`;
-                actionHtml = '<span style="font-size:0.72rem; color:#10b981; font-weight:700; display:flex; align-items:center; gap:2px;"><i data-lucide="check-circle" style="width:12px; height:12px;"></i> Despachado</span>';
-            } else {
-                certHtml = `<span style="color:var(--danger-color); font-weight:600;">Cancelado</span>`;
-                actionHtml = '<span style="font-size:0.72rem; color:var(--text-muted);">Sin acción</span>';
-            }
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding: 14px 16px;"><b>#PED-${p.id}</b></td>
-                <td style="padding: 14px 16px; font-weight:500;">${cliente.nombre}</td>
-                <td style="padding: 14px 16px; font-size:0.75rem; color:var(--text-secondary);">${fecha}</td>
-                <td style="padding: 14px 16px;">${certHtml}</td>
-                <td style="padding: 14px 16px; text-align: right;">${actionHtml}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-        this.refreshIcons();
-    },
-
-    openCertificarModal(pedidoId, clienteNombre) {
-        AppModals.inject('modal-certificar-pedido');
-        document.getElementById('certificar-pedido-id').value = pedidoId;
-        document.getElementById('certificar-pedido-label').innerText = `#PED-${pedidoId}`;
-        document.getElementById('certificar-cliente-label').innerText = clienteNombre;
-        document.getElementById('certificar-texto').value = '';
-        
-        AppModals.inject('modal-certificar-pedido');
-AppModals.inject('modal-certificar-pedido'); document.getElementById('modal-certificar-pedido').classList.remove('hidden');
-    },
-
-    closeCertificarModal() {
-        AppModals.inject('modal-certificar-pedido'); document.getElementById('modal-certificar-pedido').classList.add('hidden');
-    },
-
-    async handleSaveCertificacion(e) {
-        e.preventDefault();
-        const pedidoId = parseInt(document.getElementById('certificar-pedido-id').value, 10);
-        const certificacion = document.getElementById('certificar-texto').value.trim();
-
-        if (!certificacion) {
-            this.showToast("Ingresa los detalles de certificación.", true);
-            return;
-        }
-
-        this.showToast("Guardando certificación...");
-
-        try {
-            const updatedOrder = await ApiClient.certificarPedido(pedidoId, certificacion);
-            
-            const idx = this.state.despachoPedidos.findIndex(o => o.id === pedidoId);
-            if (idx !== -1) {
-                this.state.despachoPedidos[idx] = updatedOrder;
-            }
-
-            this.showToast("Pedido certificado y despachado.");
-            this.closeCertificarModal();
-            this.renderDespachoDashboard();
-            this.renderDespachoCertificar(document.getElementById('despacho-pedidos-search').value);
-        } catch (err) {
-            this.showToast("Error al guardar la certificación.", true);
-        }
-    },
-
-    // ==================== ADMIN USUARIOS CRUD ====================
-    async renderAdminUsuarios() {
-        const tbody = document.getElementById('tbody-usuarios');
-        if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Cargando usuarios...</td></tr>';
-
-        try {
-            const list = await ApiClient.getAdminUsuarios();
-            this.state.adminUsuarios = list;
-            tbody.innerHTML = '';
-
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-secondary);">No hay usuarios de acceso registrados.</td></tr>';
-                return;
-            }
-
-            list.forEach(u => {
-                const vendedor = this.state.adminVendedores.find(v => v.id === u.vendedor_id);
-                const vendedorNombre = vendedor ? vendedor.nombre : '<span style="color:var(--text-muted);">Ninguno</span>';
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="padding: 14px 16px; font-weight:700;">${this.escapeHtml(u.username)}</td>
-                    <td style="padding: 14px 16px;"><span class="status-badge" style="background:#e0e7ff; color:#4338ca;">${u.rol.toUpperCase()}</span></td>
-                    <td style="padding: 14px 16px;">${vendedorNombre}</td>
-                    <td style="padding: 14px 16px;">
-                        ${u.debe_cambiar_clave 
-                            ? '<span class="status-badge critical" style="font-size:0.65rem;">SÍ (Pendiente)</span>' 
-                            : '<span class="status-badge dispatched" style="font-size:0.65rem;">NO (Cambiada)</span>'}
-                    </td>
-                    <td style="padding: 14px 16px; text-align: right;">
-                        <button class="admin-action-btn" onclick="App.openUsuarioModal(${JSON.stringify(u).replace(/"/g, '&quot;')})">
-                            <i data-lucide="edit-2"></i>
-                        </button>
-                        <button class="admin-action-btn delete" onclick="App.deleteUsuario(${u.id})">
-                            <i data-lucide="trash-2"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            this.refreshIcons();
-        } catch (e) {
-            console.error("Error loading users", e);
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--danger-color);">Error al cargar usuarios de acceso.</td></tr>';
-        }
-    },
-
-    openUsuarioModal(usuario = null) {
-        AppModals.inject('modal-admin-usuario');
-        document.getElementById('form-admin-usuario').reset();
-        document.getElementById('admin-usuario-id').value = '';
-        document.getElementById('admin-usuario-debe-cambiar').checked = true;
-
-        const selectVendedor = document.getElementById('admin-usuario-vendedor');
-        selectVendedor.innerHTML = '<option value="">Selecciona un vendedor</option>';
-        if (this.state.adminVendedores) {
-            this.state.adminVendedores.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.id;
-                opt.innerText = v.nombre;
-                selectVendedor.appendChild(opt);
-            });
-        }
-
-        const passInput = document.getElementById('admin-usuario-password');
-        const passHelp = document.getElementById('admin-usuario-password-help');
-
-        if (usuario) {
-            AppModals.inject('modal-usuario-title'); document.getElementById('modal-usuario-title').innerText = "Editar Usuario";
-            document.getElementById('admin-usuario-id').value = usuario.id;
-            document.getElementById('admin-usuario-username').value = usuario.username;
-            document.getElementById('admin-usuario-rol').value = usuario.rol;
-            document.getElementById('admin-usuario-vendedor').value = usuario.vendedor_id || '';
-            document.getElementById('admin-usuario-debe-cambiar').checked = usuario.debe_cambiar_clave;
-            
-            passInput.required = false;
-            if (passHelp) passHelp.style.display = 'block';
-        } else {
-            AppModals.inject('modal-usuario-title'); document.getElementById('modal-usuario-title').innerText = "Nuevo Usuario";
-            passInput.required = true;
-            if (passHelp) passHelp.style.display = 'none';
-        }
-
-        this.handleUserRolChange();
-        AppModals.inject('modal-admin-usuario');
-AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-usuario').classList.remove('hidden');
-    },
-
-    closeUsuarioModal() {
-        AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-usuario').classList.add('hidden');
-    },
-
-    handleUserRolChange() {
-        const rolSelect = document.getElementById('admin-usuario-rol');
-        const vendedorGroup = document.getElementById('admin-usuario-vendedor-group');
-        const vendedorSelect = document.getElementById('admin-usuario-vendedor');
-
-        if (rolSelect.value === 'vendedor') {
-            vendedorGroup.style.display = 'block';
-            vendedorSelect.required = true;
-        } else {
-            vendedorGroup.style.display = 'none';
-            vendedorSelect.required = false;
-            vendedorSelect.value = '';
-        }
-    },
-
-    async handleSaveUsuario(e) {
-        e.preventDefault();
-        const id = document.getElementById('admin-usuario-id').value;
-        const passVal = document.getElementById('admin-usuario-password').value;
-        const vendVal = document.getElementById('admin-usuario-vendedor').value;
-
-        const usuario = {
-            username: document.getElementById('admin-usuario-username').value.trim(),
-            rol: document.getElementById('admin-usuario-rol').value,
-            vendedor_id: vendVal ? parseInt(vendVal, 10) : null,
-            debe_cambiar_clave: document.getElementById('admin-usuario-debe-cambiar').checked
-        };
-
-        if (id) {
-            usuario.id = parseInt(id, 10);
-            if (passVal) usuario.password = passVal;
-        } else {
-            if (!passVal) {
-                this.showToast("Por favor define la contraseña.", true);
-                return;
-            }
-            usuario.password = passVal;
-        }
-
-        if (usuario.rol === 'vendedor' && !usuario.vendedor_id) {
-            this.showToast("Los usuarios vendedores deben tener un vendedor_id asociado.", true);
-            return;
-        }
-
-        try {
-            await ApiClient.saveAdminUsuario(usuario);
-            this.showToast("Usuario guardado con éxito.");
-            this.closeUsuarioModal();
-            this.renderAdminUsuarios();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    async deleteUsuario(id) {
-        if (!confirm("¿Estás seguro de eliminar este usuario de acceso?")) return;
-
-        try {
-            await ApiClient.deleteAdminUsuario(id);
-            this.showToast("Usuario eliminado.");
-            this.renderAdminUsuarios();
-        } catch (err) {
-            this.showToast(err.message, true);
-        }
-    },
-
-    // ==================== ADMIN INFORMES ====================
-    async renderAdminInformes(periodo = null) {
-        // Inicializa la vista de informes
-        try {
-            const vendedores = await ApiClient.getAdminVendedores();
-            const selectVendedor = document.getElementById('informe-filtro-entidad');
-            if (selectVendedor) {
-                selectVendedor.innerHTML = '<option value="todos">Todos los Vendedores / Zonas</option>';
-                vendedores.forEach(v => {
-                    selectVendedor.innerHTML += `<option value="${v.id}">${this.escapeHtml(v.nombre)}</option>`;
-                });
-            }
-            document.getElementById('informe-resultados').classList.add('hidden');
-        } catch (err) {
-            console.error("Error cargando filtros", err);
-        }
-    },
-
-    toggleRangoFechas() {
-        const periodo = document.getElementById('informe-periodo').value;
-        const rangoDiv = document.getElementById('informe-rango-fechas');
-        if (periodo === 'rango') {
-            rangoDiv.style.display = 'grid';
-        } else {
-            rangoDiv.style.display = 'none';
-        }
-    },
-
-    async generarInformeAdmin() {
-        const tipo = document.getElementById('informe-tipo').value;
-        const periodo = document.getElementById('informe-periodo').value;
-        const filtroEntidad = document.getElementById('informe-filtro-entidad').value;
-        const desde = document.getElementById('informe-fecha-desde').value;
-        const hasta = document.getElementById('informe-fecha-hasta').value;
-        
-        this.showToast("Generando informe...");
-        const container = document.getElementById('informe-resultados');
-        container.classList.remove('hidden');
-        
-        const thead = document.getElementById('informe-tabla-head');
-        const tbody = document.getElementById('informe-tabla-body');
-        const resumen = document.getElementById('informe-resumen-ejecutivo');
-        const titulo = document.getElementById('informe-titulo-resultado');
-
-        thead.innerHTML = '';
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Analizando datos...</td></tr>';
-        resumen.innerText = 'Calculando métricas...';
-
-        try {
-            const result = await ApiClient.generarInformeAvanzado(tipo, periodo, desde, hasta, filtroEntidad);
-            
-            // Render table header
-            titulo.innerText = result.titulo;
-            
-            let theadHtml = '<tr style="background:#f3f4f6;">';
-            result.columnas.forEach(col => {
-                theadHtml += `<th>${col}</th>`;
-            });
-            theadHtml += '</tr>';
-            thead.innerHTML = theadHtml;
-
-            // Render table body
-            let tbodyHtml = '';
-            if (!result.filas || result.filas.length === 0) {
-                tbodyHtml = `<tr><td colspan="${result.columnas.length}" style="text-align:center;">No hay datos para este informe en el período.</td></tr>`;
-            } else {
-                result.filas.forEach(fila => {
-                    let hl = fila['_highlight'] ? 'font-weight:bold;color:#d9534f;' : '';
-                    tbodyHtml += '<tr>';
-                    result.columnas.forEach(col => {
-                        let val = fila[col] !== undefined ? fila[col] : '-';
-                        tbodyHtml += `<td style="${hl}">${val}</td>`;
-                    });
-                    tbodyHtml += '</tr>';
-                });
-            }
-            tbody.innerHTML = tbodyHtml;
-
-            // Render summary and suggestions
-            let extraHTML = `<strong>Resumen Ejecutivo:</strong> ${result.resumen}<br><br>`;
-            if (result.sugerencias) {
-                extraHTML += `<strong>Acción Sugerida:</strong> ${result.sugerencias}`;
-            }
-            resumen.innerHTML = extraHTML;
-            
-            // Save for export
-            this.state.informeActualData = {
-                tipo, result
-            };
-
-            this.refreshIcons();
-        } catch (err) {
-            console.error(err);
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;">Error al procesar datos</td></tr>';
-            resumen.innerText = "Error: " + err.message;
-        }
-    },
-
-    exportarInformeActual(formato) {
-        if (!this.state.informeActualData) {
-            this.showToast("Primero debes generar un informe.", true);
-            return;
-        }
-
-        if (formato === 'pdf') {
-            this.showToast("Generando PDF...");
-            setTimeout(() => {
-                this.showToast("¡PDF descargado con éxito!");
-            }, 1000);
-        } else {
-            // Excel / CSV
-            const { result } = this.state.informeActualData;
-            
-            // Construir encabezados CSV
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += result.columnas.map(c => `"${c}"`).join(",") + "\n";
-            
-            // Construir filas
-            if (result.filas) {
-                result.filas.forEach(fila => {
-                    const line = result.columnas.map(col => {
-                        let val = fila[col] !== undefined ? fila[col] : '';
-                        val = String(val).replace(/"/g, '""'); // Escape comillas
-                        return `"${val}"`;
-                    }).join(",");
-                    csvContent += line + "\n";
-                });
-            }
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Informe_${Date.now()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            this.showToast("Reporte descargado exitosamente.");
-        }
-    }
-};
+    };
 
 // Global hook for events
 window.App = App;
