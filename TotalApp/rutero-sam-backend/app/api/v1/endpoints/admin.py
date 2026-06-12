@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select, func
 
@@ -23,10 +23,10 @@ from app.schemas.producto import ProductoOut
 from app.schemas.pedido import PedidoOut
 from app.schemas.usuario import UsuarioOut, UsuarioCreateIn, UsuarioUpdateIn
 
-router = APIRouter(prefix="/admin", tags=["AdministraciÃ³n"])
+router = APIRouter(prefix="/admin", tags=["AdministraciÃƒÂ³n"])
 
 
-# 1. ESTADÃ�STICAS
+# 1. ESTADÃƒï¿½STICAS
 @router.get("/stats", response_model=StatsOut)
 def obtener_estadisticas(db: DbSession) -> StatsOut:
     # Ventas totales (suma de todos los pedidos)
@@ -140,12 +140,12 @@ def listar_clientes(db: DbSession) -> list[Cliente]:
 
 @router.post("/clientes", response_model=ClienteOut, status_code=status.HTTP_201_CREATED)
 def crear_cliente(payload: ClienteCreate, db: DbSession) -> Cliente:
-    # Verificar si el cÃ³digo_pdv ya existe
+    # Verificar si el cÃƒÂ³digo_pdv ya existe
     existente = db.scalar(select(Cliente).where(Cliente.codigo_pdv == payload.codigo_pdv))
     if existente:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El cÃ³digo PDV ya estÃ¡ registrado.",
+            detail="El cÃƒÂ³digo PDV ya estÃƒÂ¡ registrado.",
         )
         
     cliente = Cliente(
@@ -203,7 +203,7 @@ def desactivar_cliente(cliente_id: int, db: DbSession) -> None:
     db.commit()
 
 
-# 4. CRUD PRODUCTOS (CATÃLOGO)
+# 4. CRUD PRODUCTOS (CATÃƒLOGO)
 @router.get("/productos", response_model=list[ProductoOut])
 def listar_productos(db: DbSession) -> list[Producto]:
     stmt = select(Producto).order_by(Producto.nombre.asc())
@@ -217,7 +217,7 @@ def crear_producto(payload: ProductoCreate, db: DbSession) -> Producto:
     if existente:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El SKU ya está registrado.",
+            detail="El SKU ya estÃ¡ registrado.",
         )
         
     producto = Producto(
@@ -288,7 +288,7 @@ def crear_usuario(payload: UsuarioCreateIn, db: DbSession) -> Usuario:
     if existente:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El nombre de usuario ya estÃ¡ registrado.",
+            detail="El nombre de usuario ya estÃƒÂ¡ registrado.",
         )
     
     # Validar que si el rol es vendedor, tenga vendedor_id asignado
@@ -320,7 +320,7 @@ def actualizar_usuario(usuario_id: int, payload: UsuarioUpdateIn, db: DbSession)
             detail="Usuario no encontrado.",
         )
     
-    # Verificar si el nuevo username estÃ¡ en uso por otro usuario
+    # Verificar si el nuevo username estÃƒÂ¡ en uso por otro usuario
     existente = db.scalar(
         select(Usuario)
         .where(Usuario.username == payload.username)
@@ -329,7 +329,7 @@ def actualizar_usuario(usuario_id: int, payload: UsuarioUpdateIn, db: DbSession)
     if existente:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El nombre de usuario ya estÃ¡ registrado.",
+            detail="El nombre de usuario ya estÃƒÂ¡ registrado.",
         )
         
     if payload.rol == "vendedor" and not payload.vendedor_id:
@@ -385,7 +385,7 @@ async def upload_cartera_siigo(db: DbSession, file: UploadFile = File(...)):
             pass
 
         db.commit()
-        return {"message": "Cartera procesada con éxito", "nuevas_facturas": count_added}
+        return {"message": "Cartera procesada con Ã©xito", "nuevas_facturas": count_added}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -402,7 +402,7 @@ async def upload_clientes_siigo(db: DbSession, file: UploadFile = File(...)):
         count_added = 0
         for index, row in df.iterrows():
             # Obtener datos de las columnas de Siigo
-            identificacion = str(row.get('Identificación', '')).strip()
+            identificacion = str(row.get('IdentificaciÃ³n', '')).strip()
             
             # Validar que exista identificacion
             if not identificacion or identificacion.lower() == 'nan':
@@ -414,7 +414,7 @@ async def upload_clientes_siigo(db: DbSession, file: UploadFile = File(...)):
             
             nombre = str(row.get('Nombre tercero', 'Cliente sin nombre')).strip()
             
-            direccion_base = str(row.get('Dirección', '')).strip()
+            direccion_base = str(row.get('DirecciÃ³n', '')).strip()
             ciudad = str(row.get('Ciudad', '')).strip()
             direccion = f"{direccion_base}, {ciudad}".strip(", ")
             if not direccion or direccion.lower() == 'nan':
@@ -439,7 +439,7 @@ async def upload_clientes_siigo(db: DbSession, file: UploadFile = File(...)):
                 db.add(nuevo)
                 count_added += 1
         db.commit()
-        return {"message": "Clientes procesados con éxito", "nuevos_clientes": count_added}
+        return {"message": "Clientes procesados con Ã©xito", "nuevos_clientes": count_added}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -484,7 +484,7 @@ async def upload_productos_excel(db: DbSession, file: UploadFile = File(...)):
                 db.add(nuevo)
                 count_added += 1
         db.commit()
-        return {"message": "Productos procesados con éxito", "agregados": count_added, "actualizados": count_updated}
+        return {"message": "Productos procesados con Ã©xito", "agregados": count_added, "actualizados": count_updated}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -513,7 +513,7 @@ async def upload_vendedores_excel(db: DbSession, file: UploadFile = File(...)):
                 db.add(nuevo)
                 count_added += 1
         db.commit()
-        return {"message": "Vendedores procesados con éxito", "nuevos_vendedores": count_added}
+        return {"message": "Vendedores procesados con Ã©xito", "nuevos_vendedores": count_added}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -527,4 +527,5 @@ def reordenar_clientes(payload: ClienteReorderBatchIn, db: DbSession):
         if cliente_db:
             cliente_db.secuencia_ruta = c_in.secuencia_ruta
     db.commit()
-    return {"message": "Ruta reordenada con �xito"}
+    return {"message": "Ruta reordenada con éxito"}
+

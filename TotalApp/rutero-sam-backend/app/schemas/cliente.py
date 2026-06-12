@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+﻿from pydantic import BaseModel, ConfigDict, Field
 
 
 class ClienteSyncIn(BaseModel):
@@ -55,3 +55,4 @@ class ClienteReorderIn(BaseModel):
 
 class ClienteReorderBatchIn(BaseModel):
     clientes: list[ClienteReorderIn] = Field(min_length=1)
+
