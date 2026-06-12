@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'sam-rutero-cache-v14';
+﻿const CACHE_NAME = 'sam-rutero-cache-v15';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -12,11 +12,8 @@ const STATIC_ASSETS = [
   '/icons/icon-512.png',
   // Google Fonts
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap',
-  // CDN resources
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://unpkg.com/lucide@latest'
+  // OMITIMOS CDNs aqu? porque causan error 302 en cache.addAll
+  // Ser?n cacheados autom?ticamente por la estrategia runtime network-first
 ];
 
 // Install Event: cache static resources
