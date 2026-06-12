@@ -1,14 +1,15 @@
-const CACHE_NAME = 'sam-rutero-cache-v5';
+const CACHE_NAME = 'sam-rutero-cache-v7';
 const STATIC_ASSETS = [
-  './',
-  './index.html',
-  './css/styles.css',
-  './js/api.js',
-  './js/map.js',
-  './js/app.js',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  '/',
+  '/index.html',
+  '/css/styles.css',
+  '/js/api.js',
+  '/js/map.js',
+  '/js/modals.js',
+  '/js/app.js',
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
   // Google Fonts
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap',
   // CDN resources

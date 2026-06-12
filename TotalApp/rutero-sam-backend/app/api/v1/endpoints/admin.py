@@ -70,6 +70,17 @@ def listar_vendedores(db: DbSession) -> list[Vendedor]:
     return list(db.scalars(stmt).all())
 
 
+@router.get("/vendedores/{vendedor_id}", response_model=VendedorOut)
+def obtener_vendedor(vendedor_id: int, db: DbSession) -> Vendedor:
+    vendedor = db.get(Vendedor, vendedor_id)
+    if not vendedor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vendedor no encontrado.",
+        )
+    return vendedor
+
+
 @router.post("/vendedores", response_model=VendedorOut, status_code=status.HTTP_201_CREATED)
 def crear_vendedor(payload: VendedorCreate, db: DbSession) -> Vendedor:
     vendedor = Vendedor(

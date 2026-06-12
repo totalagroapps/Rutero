@@ -31,6 +31,28 @@ const App = {
         lastY: 0
     },
 
+    
+    escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>'"]/g, tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag));
+    },
+
+    
+    refreshIcons() {
+        if (this._iconTimeout) clearTimeout(this._iconTimeout);
+        this._iconTimeout = setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+                this.refreshIcons();
+            }
+        }, 50);
+    },
+
     // Initialize application
     async init() {
         console.log("Starting TotalAPP / Rutero SAM...");
@@ -67,7 +89,7 @@ const App = {
         this.checkLoginState();
 
         // Initialize Lucide icons
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     // Check if user was already logged in
@@ -75,13 +97,16 @@ const App = {
         const savedRole = localStorage.getItem('sam_active_role');
         const savedIsLoggedIn = localStorage.getItem('sam_is_logged_in') === 'true';
         const savedUser = localStorage.getItem('sam_logged_user');
+        const savedVendedor = localStorage.getItem('sam_vendedor');
 
         if (savedIsLoggedIn && savedRole && savedUser) {
             this.state.activeRole = savedRole;
             this.state.isLoggedIn = true;
             this.state.user = JSON.parse(savedUser);
             
-            if (savedRole === 'vendedor') {
+            if (savedRole === 'vendedor' && savedVendedor) {
+                this.state.vendedor = JSON.parse(savedVendedor);
+            } else if (savedRole === 'vendedor') {
                 this.state.vendedor = { 
                     id: this.state.user.vendedor_id || 1, 
                     nombre: 'Vendedor ' + this.state.user.username, 
@@ -168,7 +193,7 @@ const App = {
             this.renderAdminInformes('mes');
         }
 
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     async renderMainCartera() {
@@ -186,8 +211,8 @@ const App = {
                 html += `
                     <div class="summary-card" style="padding:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;" onclick="App.openClientCarteraDemo(${c.id})">
                         <div>
-                            <strong style="display:block;">${c.nombre}</strong>
-                            <span style="font-size:0.75rem; color:var(--text-secondary);">${c.codigo_pdv}</span>
+                            <strong style="display:block;">${this.escapeHtml(c.nombre)}</strong>
+                            <span style="font-size:0.75rem; color:var(--text-secondary);">${this.escapeHtml(c.codigo_pdv)}</span>
                         </div>
                         <i data-lucide="chevron-right" style="color:var(--primary-color);"></i>
                     </div>
@@ -195,7 +220,7 @@ const App = {
             });
             
             container.innerHTML = html || '<p style="text-align:center;">No se encontraron clientes.</p>';
-            lucide.createIcons();
+            this.refreshIcons();
         } catch (err) {
             console.error(err);
             container.innerHTML = '<p style="text-align:center; color:red;">Error al cargar cartera.</p>';
@@ -207,10 +232,11 @@ const App = {
         try {
             const cartera = await ApiClient.getCarteraCliente(clientId);
             
-            document.getElementById('modal-cartera-total-adeudado').innerText = `$${cartera.total_adeudado.toLocaleString('es-CO')}`;
-            document.getElementById('modal-cartera-total-vencido').innerText = `$${cartera.total_vencido.toLocaleString('es-CO')}`;
+            AppModals.inject('modal-cartera-total-adeudado'); document.getElementById('modal-cartera-total-adeudado').innerText = `$${cartera.total_adeudado.toLocaleString('es-CO')}`;
+            AppModals.inject('modal-cartera-total-vencido'); document.getElementById('modal-cartera-total-vencido').innerText = `$${cartera.total_vencido.toLocaleString('es-CO')}`;
             
-            const listContainer = document.getElementById('modal-cartera-facturas');
+            AppModals.inject('modal-cartera-facturas');
+        AppModals.inject('modal-cartera-facturas'); const listContainer = document.getElementById('modal-cartera-facturas');
             listContainer.innerHTML = '';
             
             if (cartera.facturas && cartera.facturas.length > 0) {
@@ -234,7 +260,8 @@ const App = {
                 listContainer.innerHTML = '<p style="text-align:center; color:var(--text-secondary); font-size:0.9rem; padding:10px;">No hay facturas pendientes.</p>';
             }
             
-            document.getElementById('modal-cartera-detalle').classList.remove('hidden');
+            AppModals.inject('modal-cartera-detalle');
+AppModals.inject('modal-cartera-detalle'); document.getElementById('modal-cartera-detalle').classList.remove('hidden');
         } catch (err) {
             console.error(err);
             this.showToast("Error al cargar la cartera", true);
@@ -267,7 +294,7 @@ const App = {
             roleIcon.setAttribute('data-lucide', 'truck');
             usernameInput.placeholder = "Nombre de usuario (ej. despacho1)";
         }
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     backToRoleSelection() {
@@ -311,17 +338,27 @@ const App = {
 
             this.state.user = userData;
             localStorage.setItem('sam_logged_user', JSON.stringify(userData));
+            if (userData.access_token) {
+                localStorage.setItem('sam_access_token', userData.access_token);
+            }
 
             if (userData.debe_cambiar_clave) {
                 this.openChangePasswordModal();
             } else {
                 this.state.isLoggedIn = true;
-                if (userData.rol === 'vendedor') {
-                    this.state.vendedor = { 
-                        id: userData.vendedor_id || 1, 
-                        nombre: 'Vendedor ' + userData.username, 
-                        zona: 'Zona Asignada' 
-                    };
+                if (userData.rol === 'vendedor' && userData.vendedor_id) {
+                    try {
+                        const vendedorData = await ApiClient.getVendedorById(userData.vendedor_id);
+                        this.state.vendedor = vendedorData;
+                        localStorage.setItem('sam_vendedor', JSON.stringify(vendedorData));
+                    } catch (e) {
+                        console.warn("Could not fetch vendedor data", e);
+                        this.state.vendedor = { 
+                            id: userData.vendedor_id || 1, 
+                            nombre: 'Vendedor ' + userData.username, 
+                            zona: 'Zona Asignada' 
+                        };
+                    }
                 }
                 this.showAppMain();
             }
@@ -331,7 +368,8 @@ const App = {
     },
 
     openChangePasswordModal() {
-        const modal = document.getElementById('modal-change-password');
+        AppModals.inject('modal-change-password');
+        AppModals.inject('modal-change-password'); const modal = document.getElementById('modal-change-password');
         modal.classList.remove('hidden');
         document.getElementById('change-password-nueva').value = '';
         document.getElementById('change-password-confirmar').value = '';
@@ -342,8 +380,9 @@ const App = {
         const nueva = document.getElementById('change-password-nueva').value;
         const confirmar = document.getElementById('change-password-confirmar').value;
 
-        if (nueva.length < 4) {
-            this.showToast("La contraseña debe tener al menos 4 caracteres.", true);
+        const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(nueva);
+        if (nueva.length < 8 || !hasNumberOrSymbol) {
+            this.showToast("La contraseña debe tener al menos 8 caracteres y contener al menos un número o símbolo.", true);
             return;
         }
 
@@ -355,14 +394,10 @@ const App = {
         this.showToast("Cambiando contraseña...");
 
         try {
-            const username = this.state.user.username;
-            const passwordField = document.getElementById('login-password').value;
-            const currentPassword = passwordField || '1234';
-
-            await ApiClient.changePassword(username, currentPassword, nueva);
+            await ApiClient.changePassword(nueva);
             
             this.showToast("Contraseña cambiada con éxito.");
-            document.getElementById('modal-change-password').classList.add('hidden');
+            AppModals.inject('modal-change-password'); document.getElementById('modal-change-password').classList.add('hidden');
             
             this.state.user.debe_cambiar_clave = false;
             localStorage.setItem('sam_logged_user', JSON.stringify(this.state.user));
@@ -445,6 +480,7 @@ const App = {
         localStorage.removeItem('sam_active_role');
         localStorage.removeItem('sam_is_logged_in');
         localStorage.removeItem('sam_logged_user');
+        localStorage.removeItem('sam_access_token');
 
         document.querySelector('.app-header').classList.add('hidden');
         document.querySelector('.app-main').classList.add('hidden');
@@ -688,7 +724,8 @@ const App = {
             }
 
             // 2. Fetch fresh routes & catalog
-            const vendedorRuta = await ApiClient.getRuta(1); // Default vendedor ID 1
+            const vid = (this.state.user && this.state.user.vendedor_id) ? this.state.user.vendedor_id : 1;
+            const vendedorRuta = await ApiClient.getRuta(vid);
             this.state.clientes = vendedorRuta;
             localStorage.setItem('sam_cache_clientes', JSON.stringify(vendedorRuta));
 
@@ -756,18 +793,26 @@ const App = {
 
         // Simulated stats count from database / local storage
         let pending = 0;
-        let dispatched = 0;
-        let canceled = 0;
 
         // Count Vendedor orders stored locally
         this.state.unsyncedOrders.forEach(o => {
             pending++;
         });
 
-        // Add pre-loaded counts to make it match mockup
-        document.getElementById('vendedor-pending-count').innerText = (pending + 12).toString();
-        document.getElementById('vendedor-dispatched-count').innerText = (dispatched + 8).toString();
-        document.getElementById('vendedor-canceled-count').innerText = (canceled + 3).toString();
+        // Set initial local counts
+        document.getElementById('vendedor-pending-count').innerText = pending.toString();
+        document.getElementById('vendedor-dispatched-count').innerText = '0';
+        document.getElementById('vendedor-canceled-count').innerText = '0';
+
+        // Fetch real counts from backend
+        if (this.state.vendedor && this.state.vendedor.id) {
+            ApiClient.getVendedorStats(this.state.vendedor.id).then(stats => {
+                const totalPending = pending + stats.pendientes;
+                document.getElementById('vendedor-pending-count').innerText = totalPending.toString();
+                document.getElementById('vendedor-dispatched-count').innerText = stats.despachados.toString();
+                document.getElementById('vendedor-canceled-count').innerText = stats.cancelados.toString();
+            }).catch(e => console.warn("Error loading real vendor stats:", e));
+        }
     },
 
     renderRutaView() {
@@ -817,7 +862,7 @@ const App = {
 
         MapController.renderRoute(this.state.clientes, this.state.visitStates);
         MapController.setUserLocation(this.state.userCoords.lat, this.state.userCoords.lng);
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     renderCatalog(filterText = '') {
@@ -1080,19 +1125,17 @@ const App = {
                 });
             });
 
-            // Fetch live client orders and merge
-            for (let c of this.state.clientes) {
-                try {
-                    const cOrders = await ApiClient.getClientPedidos(c.id);
-                    cOrders.forEach(o => {
-                        // Check duplicates
-                        if (!list.some(x => x.id === o.id || x.uuid_dispositivo === o.uuid_dispositivo)) {
-                            list.push(o);
-                        }
-                    });
-                } catch(err) {
-                    console.warn("Could not load database orders for client:", c.id);
-                }
+            // Fetch live vendor orders and merge
+            try {
+                const vendorOrders = await ApiClient.getPedidosByVendedor(this.state.vendedor.id);
+                vendorOrders.forEach(o => {
+                    // Check duplicates
+                    if (!list.some(x => x.id === o.id || x.uuid_dispositivo === o.uuid_dispositivo)) {
+                        list.push(o);
+                    }
+                });
+            } catch(err) {
+                console.warn("Could not load database orders for vendor:", this.state.vendedor.id);
             }
 
             // Fallback mock list if empty
@@ -1302,7 +1345,7 @@ const App = {
                     <span class="order-status ${o.estado_sincronizacion.toLowerCase()}">${o.estado_sincronizacion === 'PENDIENTE' ? 'Por recibir' : 'Recibido'}</span>
                 </div>
                 <div class="order-history-details">
-                    <span>Vendedor: <span class="client-name">Juan Pérez</span></span>
+                    <span>Vendedor: <span class="client-name">${this.state.vendedor ? this.state.vendedor.nombre : (this.state.user ? this.state.user.username : 'Asignado')}</span></span>
                     <span>${formattedDate}</span>
                 </div>
                 <div class="order-history-footer">
@@ -1526,9 +1569,12 @@ const App = {
 
     // ==================== ORDER DETAIL MODALS ====================
     openOrderModal(order) {
-        const modal = document.getElementById('modal-order-details');
-        const codeEl = document.getElementById('modal-order-code');
-        const bodyEl = document.getElementById('modal-order-body');
+        AppModals.inject('modal-order-details');
+        AppModals.inject('modal-order-details'); const modal = document.getElementById('modal-order-details');
+        AppModals.inject('modal-order-code');
+        AppModals.inject('modal-order-code'); const codeEl = document.getElementById('modal-order-code');
+        AppModals.inject('modal-order-body');
+        AppModals.inject('modal-order-body'); const bodyEl = document.getElementById('modal-order-body');
 
         codeEl.innerText = `Pedido #PED-${order.id || 'PENDIENTE'}`;
         
@@ -1612,11 +1658,11 @@ const App = {
 
         bodyEl.innerHTML = detailsHtml;
         modal.classList.remove('hidden');
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     closeOrderModal() {
-        document.getElementById('modal-order-details').classList.add('hidden');
+        AppModals.inject('modal-order-details'); document.getElementById('modal-order-details').classList.add('hidden');
     },
 
     async receiveOrderAction(pedidoId) {
@@ -2160,7 +2206,7 @@ const App = {
             toastIcon.setAttribute('data-lucide', 'check');
         }
 
-        lucide.createIcons();
+        this.refreshIcons();
         toast.classList.add('show');
 
         this.toastTimeout = setTimeout(() => {
@@ -2283,8 +2329,8 @@ const App = {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="padding: 14px 16px;"><b>${v.id}</b></td>
-                <td style="padding: 14px 16px; font-weight:500;">${v.nombre}</td>
-                <td style="padding: 14px 16px; color:var(--text-secondary);">${v.zona}</td>
+                <td style="padding: 14px 16px; font-weight:500;">${this.escapeHtml(v.nombre)}</td>
+                <td style="padding: 14px 16px; color:var(--text-secondary);">${this.escapeHtml(v.zona)}</td>
                 <td style="padding: 14px 16px; text-align: right;">
                     <button class="admin-action-btn" onclick="App.openVendedorModal(${JSON.stringify(v).replace(/"/g, '&quot;')})">
                         <i data-lucide="edit-2"></i>
@@ -2296,7 +2342,7 @@ const App = {
             `;
             tbody.appendChild(tr);
         });
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     // Render Clientes list
@@ -2329,10 +2375,10 @@ const App = {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="padding: 14px 16px;">
-                    <div style="font-weight:600; color:var(--text-primary);">${c.nombre}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${c.codigo_pdv} · ${c.encargado || 'Sin encargado'}</div>
+                    <div style="font-weight:600; color:var(--text-primary);">${this.escapeHtml(c.nombre)}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${this.escapeHtml(c.codigo_pdv)} · ${c.encargado || 'Sin encargado'}</div>
                 </td>
-                <td style="padding: 14px 16px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary);">${c.direccion}</td>
+                <td style="padding: 14px 16px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary);">${this.escapeHtml(c.direccion)}</td>
                 <td style="padding: 14px 16px; font-weight:500;">${vendedorNombre}</td>
                 <td style="padding: 14px 16px; font-weight:700;">#${c.secuencia_ruta}</td>
                 <td style="padding: 14px 16px;">${estadoBadge}</td>
@@ -2354,7 +2400,7 @@ const App = {
             searchInput.dataset.hasListener = 'true';
             searchInput.addEventListener('input', () => this.renderAdminClientes());
         }
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     // Render Productos catalog
@@ -2381,8 +2427,8 @@ const App = {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;"><code>${p.sku}</code></td>
-                <td style="padding: 14px 16px; font-weight:500;">${p.nombre}</td>
+                <td style="padding: 14px 16px;"><code>${this.escapeHtml(p.sku)}</code></td>
+                <td style="padding: 14px 16px; font-weight:500;">${this.escapeHtml(p.nombre)}</td>
                 <td style="padding:12px 16px;">$${parseFloat(p.precio_directo).toLocaleString('es-CO')}</td>
                 <td style="padding:12px 16px;">${p.precio_distribuidor ? '$' + parseFloat(p.precio_distribuidor).toLocaleString('es-CO') : '-'}</td>
                 <td style="padding:12px 16px;">${p.inventario_disponible}</td>
@@ -2404,7 +2450,7 @@ const App = {
             searchInput.dataset.hasListener = 'true';
             searchInput.addEventListener('input', () => this.renderAdminProductos());
         }
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     // Render global Pedidos list
@@ -2456,7 +2502,7 @@ const App = {
             `;
             tbody.appendChild(tr);
         });
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     // Admin: Update order status (dispatch or cancel)
@@ -2492,7 +2538,7 @@ const App = {
         this.state.adminVendedores.forEach(v => {
             const opt = document.createElement('option');
             opt.value = v.id;
-            opt.innerText = `${v.nombre} (${v.zona})`;
+            opt.innerText = `${this.escapeHtml(v.nombre)} (${this.escapeHtml(v.zona)})`;
             select.appendChild(opt);
         });
 
@@ -2510,7 +2556,7 @@ const App = {
             this.state.adminVendedores.forEach(v => {
                 const opt = document.createElement('option');
                 opt.value = v.id;
-                opt.innerText = `${v.nombre} (${v.zona})`;
+                opt.innerText = `${this.escapeHtml(v.nombre)} (${this.escapeHtml(v.zona)})`;
                 select.appendChild(opt);
             });
         }
@@ -2547,19 +2593,20 @@ const App = {
         document.getElementById('admin-vendedor-id').value = '';
         
         if (vendedor) {
-            document.getElementById('modal-vendedor-title').innerText = "Editar Vendedor";
+            AppModals.inject('modal-vendedor-title'); document.getElementById('modal-vendedor-title').innerText = "Editar Vendedor";
             document.getElementById('admin-vendedor-id').value = vendedor.id;
             document.getElementById('admin-vendedor-nombre').value = vendedor.nombre;
             document.getElementById('admin-vendedor-zona').value = vendedor.zona;
         } else {
-            document.getElementById('modal-vendedor-title').innerText = "Nuevo Vendedor";
+            AppModals.inject('modal-vendedor-title'); document.getElementById('modal-vendedor-title').innerText = "Nuevo Vendedor";
         }
         
-        document.getElementById('modal-admin-vendedor').classList.remove('hidden');
+        AppModals.inject('modal-admin-vendedor');
+AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-vendedor').classList.remove('hidden');
     },
 
     closeVendedorModal() {
-        document.getElementById('modal-admin-vendedor').classList.add('hidden');
+        AppModals.inject('modal-admin-vendedor'); document.getElementById('modal-admin-vendedor').classList.add('hidden');
     },
 
     async handleSaveVendedor(e) {
@@ -2619,7 +2666,7 @@ const App = {
         document.getElementById('admin-cliente-activo').checked = true;
 
         if (cliente) {
-            document.getElementById('modal-cliente-admin-title').innerText = "Editar Comercio";
+            AppModals.inject('modal-cliente-admin-title'); document.getElementById('modal-cliente-admin-title').innerText = "Editar Comercio";
             document.getElementById('admin-cliente-id').value = cliente.id;
             document.getElementById('admin-cliente-uuid').value = cliente.uuid_dispositivo || '';
             document.getElementById('admin-cliente-codigo').value = cliente.codigo_pdv;
@@ -2631,7 +2678,7 @@ const App = {
             document.getElementById('admin-cliente-secuencia').value = cliente.secuencia_ruta;
             document.getElementById('admin-cliente-vendedor').value = cliente.vendedor_id || '';
             document.getElementById('admin-cliente-activo').checked = cliente.activo;
-            document.getElementById('admin-cliente-tipo').value = cliente.tipo_cliente || 'tradicional';
+            document.getElementById('admin-cliente-tipo').value = cliente.tipo_cliente || 'directo';
             
             setTimeout(() => {
                 PickerMapController.init('admin-cliente-picker-map', 'admin-cliente-lat', 'admin-cliente-lng', 'admin-cliente-direccion');
@@ -2640,7 +2687,7 @@ const App = {
                 }
             }, 300);
         } else {
-            document.getElementById('modal-cliente-admin-title').innerText = "Nuevo Comercio";
+            AppModals.inject('modal-cliente-admin-title'); document.getElementById('modal-cliente-admin-title').innerText = "Nuevo Comercio";
             document.getElementById('admin-cliente-secuencia').value = this.state.adminClientes.length + 1;
             document.getElementById('admin-cliente-codigo').value = `PDV${String(this.state.adminClientes.length + 1).padStart(3, '0')}`;
             
@@ -2649,11 +2696,12 @@ const App = {
             }, 300);
         }
 
-        document.getElementById('modal-admin-cliente').classList.remove('hidden');
+        AppModals.inject('modal-admin-cliente');
+AppModals.inject('modal-admin-cliente'); document.getElementById('modal-admin-cliente').classList.remove('hidden');
     },
 
     closeClienteAdminModal() {
-        document.getElementById('modal-admin-cliente').classList.add('hidden');
+        AppModals.inject('modal-admin-cliente'); document.getElementById('modal-admin-cliente').classList.add('hidden');
     },
 
     async handleSaveClienteAdmin(e) {
@@ -2716,16 +2764,17 @@ const App = {
         document.getElementById('admin-producto-activo').checked = prod ? prod.activo : true;
 
         if (prod) {
-            document.getElementById('modal-producto-title').innerText = "Editar Producto";
+            AppModals.inject('modal-producto-title'); document.getElementById('modal-producto-title').innerText = "Editar Producto";
         } else {
-            document.getElementById('modal-producto-title').innerText = "Nuevo Producto";
+            AppModals.inject('modal-producto-title'); document.getElementById('modal-producto-title').innerText = "Nuevo Producto";
         }
 
-        document.getElementById('modal-admin-producto').classList.remove('hidden');
+        AppModals.inject('modal-admin-producto');
+AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-producto').classList.remove('hidden');
     },
 
     closeProductoModal() {
-        document.getElementById('modal-admin-producto').classList.add('hidden');
+        AppModals.inject('modal-admin-producto'); document.getElementById('modal-admin-producto').classList.add('hidden');
     },
 
     async handleSaveProducto(e) {
@@ -2816,8 +2865,8 @@ const App = {
         filtered.forEach(p => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding: 14px 16px;"><code>${p.sku}</code></td>
-                <td style="padding: 14px 16px; font-weight:500;">${p.nombre}</td>
+                <td style="padding: 14px 16px;"><code>${this.escapeHtml(p.sku)}</code></td>
+                <td style="padding: 14px 16px; font-weight:500;">${this.escapeHtml(p.nombre)}</td>
                 <td style="padding: 14px 16px; font-weight:700;">
                     <input type="number" id="stock-input-${p.id}" value="${p.inventario_disponible}" min="0" style="width: 80px; padding: 6px; border: 1px solid rgba(0,0,0,0.1); border-radius: var(--border-radius-sm); font-weight:700; text-align:center;">
                 </td>
@@ -2829,7 +2878,7 @@ const App = {
             `;
             tbody.appendChild(tr);
         });
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     async handleUpdateStock(productoId) {
@@ -2908,7 +2957,7 @@ const App = {
             `;
             tbody.appendChild(tr);
         });
-        lucide.createIcons();
+        this.refreshIcons();
     },
 
     openCertificarModal(pedidoId, clienteNombre) {
@@ -2917,11 +2966,12 @@ const App = {
         document.getElementById('certificar-cliente-label').innerText = clienteNombre;
         document.getElementById('certificar-texto').value = '';
         
-        document.getElementById('modal-certificar-pedido').classList.remove('hidden');
+        AppModals.inject('modal-certificar-pedido');
+AppModals.inject('modal-certificar-pedido'); document.getElementById('modal-certificar-pedido').classList.remove('hidden');
     },
 
     closeCertificarModal() {
-        document.getElementById('modal-certificar-pedido').classList.add('hidden');
+        AppModals.inject('modal-certificar-pedido'); document.getElementById('modal-certificar-pedido').classList.add('hidden');
     },
 
     async handleSaveCertificacion(e) {
@@ -2975,7 +3025,7 @@ const App = {
                 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="padding: 14px 16px; font-weight:700;">${u.username}</td>
+                    <td style="padding: 14px 16px; font-weight:700;">${this.escapeHtml(u.username)}</td>
                     <td style="padding: 14px 16px;"><span class="status-badge" style="background:#e0e7ff; color:#4338ca;">${u.rol.toUpperCase()}</span></td>
                     <td style="padding: 14px 16px;">${vendedorNombre}</td>
                     <td style="padding: 14px 16px;">
@@ -2994,7 +3044,7 @@ const App = {
                 `;
                 tbody.appendChild(tr);
             });
-            lucide.createIcons();
+            this.refreshIcons();
         } catch (e) {
             console.error("Error loading users", e);
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--danger-color);">Error al cargar usuarios de acceso.</td></tr>';
@@ -3021,7 +3071,7 @@ const App = {
         const passHelp = document.getElementById('admin-usuario-password-help');
 
         if (usuario) {
-            document.getElementById('modal-usuario-title').innerText = "Editar Usuario";
+            AppModals.inject('modal-usuario-title'); document.getElementById('modal-usuario-title').innerText = "Editar Usuario";
             document.getElementById('admin-usuario-id').value = usuario.id;
             document.getElementById('admin-usuario-username').value = usuario.username;
             document.getElementById('admin-usuario-rol').value = usuario.rol;
@@ -3031,17 +3081,18 @@ const App = {
             passInput.required = false;
             if (passHelp) passHelp.style.display = 'block';
         } else {
-            document.getElementById('modal-usuario-title').innerText = "Nuevo Usuario";
+            AppModals.inject('modal-usuario-title'); document.getElementById('modal-usuario-title').innerText = "Nuevo Usuario";
             passInput.required = true;
             if (passHelp) passHelp.style.display = 'none';
         }
 
         this.handleUserRolChange();
-        document.getElementById('modal-admin-usuario').classList.remove('hidden');
+        AppModals.inject('modal-admin-usuario');
+AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-usuario').classList.remove('hidden');
     },
 
     closeUsuarioModal() {
-        document.getElementById('modal-admin-usuario').classList.add('hidden');
+        AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-usuario').classList.add('hidden');
     },
 
     handleUserRolChange() {
@@ -3119,7 +3170,7 @@ const App = {
             if (selectVendedor) {
                 selectVendedor.innerHTML = '<option value="todos">Todos los Vendedores / Zonas</option>';
                 vendedores.forEach(v => {
-                    selectVendedor.innerHTML += `<option value="${v.id}">${v.nombre}</option>`;
+                    selectVendedor.innerHTML += `<option value="${v.id}">${this.escapeHtml(v.nombre)}</option>`;
                 });
             }
             document.getElementById('informe-resultados').classList.add('hidden');
@@ -3200,7 +3251,7 @@ const App = {
                 tipo, result
             };
 
-            lucide.createIcons();
+            this.refreshIcons();
         } catch (err) {
             console.error(err);
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;">Error al procesar datos</td></tr>';

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 
 from app.dependencies import DbSession
@@ -9,6 +9,19 @@ from app.schemas.pedido import PedidoSyncBatchIn, PedidoSyncBatchOut, PedidoSync
 
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
+
+@router.get("/vendedor/{vendedor_id}/stats")
+def obtener_estadisticas_vendedor(vendedor_id: int, db: DbSession):
+    pendientes = db.scalar(select(func.count(Pedido.id)).where(Pedido.vendedor_id == vendedor_id, Pedido.estado_sincronizacion == "PENDIENTE")) or 0
+    despachados = db.scalar(select(func.count(Pedido.id)).where(Pedido.vendedor_id == vendedor_id, Pedido.estado_sincronizacion.in_(["DESPACHADO", "RECIBIDO"]))) or 0
+    cancelados = db.scalar(select(func.count(Pedido.id)).where(Pedido.vendedor_id == vendedor_id, Pedido.estado_sincronizacion == "CANCELADO")) or 0
+    return {"pendientes": pendientes, "despachados": despachados, "cancelados": cancelados}
+
+
+@router.get("/vendedor/{vendedor_id}", response_model=list[PedidoOut])
+def obtener_pedidos_por_vendedor(vendedor_id: int, db: DbSession) -> list[Pedido]:
+    stmt = select(Pedido).where(Pedido.vendedor_id == vendedor_id).order_by(Pedido.fecha_creacion.desc())
+    return list(db.scalars(stmt))
 
 
 @router.post(

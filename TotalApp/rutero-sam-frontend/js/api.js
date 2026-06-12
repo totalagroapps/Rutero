@@ -23,28 +23,60 @@ const ApiClient = {
             clearTimeout(timeoutId);
             return response.ok;
         } catch (e) {
+            console.warn("API Connection check failed", e);
             return false;
         }
+    },
+
+    async fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem('sam_access_token');
+        if (!options.headers) {
+            options.headers = {};
+        }
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(url, options);
+        
+        if (response.status === 401) {
+            console.warn("Unauthorized access detected. Token might be expired.");
+            if (typeof App !== 'undefined' && App.logout) {
+                App.logout();
+            }
+        }
+        
+        return response;
     },
 
     // Fetch vendor route: GET /api/v1/ruta/{vendedor_id}
     async getRuta(vendedorId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/ruta/${vendedorId}`);
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/ruta/${vendedorId}`);
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
             return await response.json();
-        } catch (e) {
-            console.warn("Error fetching route from server, using local fallback if available", e);
-            throw e;
+        } catch (error) {
+            console.error("Error fetching getRuta:", error);
+            throw error;
+        }
+    },
+
+    async getVendedorStats(vendedorId) {
+        try {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/pedidos/vendedor/${vendedorId}/stats`);
+            if (!response.ok) return { pendientes: 0, despachados: 0, cancelados: 0 };
+            return await response.json();
+        } catch (error) {
+            return { pendientes: 0, despachados: 0, cancelados: 0 };
         }
     },
 
     // Fetch product catalog: GET /api/v1/catalogo
     async getCatalogo() {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/catalogo`);
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/catalogo`);
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
@@ -60,7 +92,7 @@ const ApiClient = {
         if (!pedidos || pedidos.length === 0) return { total_recibidos: 0, total_insertados: 0, pedidos: [] };
         
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/pedidos/sync`, {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/pedidos/sync`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -84,7 +116,7 @@ const ApiClient = {
         if (!clientes || clientes.length === 0) return { total_recibidos: 0, total_insertados: 0, clientes: [] };
         
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/clientes/sync`, {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/clientes/sync`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -106,7 +138,7 @@ const ApiClient = {
     // Get orders of a client: GET /api/v1/pedidos/cliente/{cliente_id}
     async getClientPedidos(clienteId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/pedidos/cliente/${clienteId}`);
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/pedidos/cliente/${clienteId}`);
             if (!response.ok) {
                 throw new Error(`Error HTTP al consultar pedidos del cliente: ${response.status}`);
             }
@@ -117,10 +149,24 @@ const ApiClient = {
         }
     },
 
+    // Get all orders of a vendor: GET /api/v1/pedidos/vendedor/{vendedor_id}
+    async getPedidosByVendedor(vendedorId) {
+        try {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/pedidos/vendedor/${vendedorId}`);
+            if (!response.ok) {
+                throw new Error(`Error HTTP al consultar pedidos del vendedor: ${response.status}`);
+            }
+            return await response.json();
+        } catch (e) {
+            console.error("Error querying vendor orders", e);
+            throw e;
+        }
+    },
+
     // Update order status: PUT /api/v1/pedidos/{pedido_id}/estado?nuevo_estado={status}
     async updatePedidoStatus(pedidoId, status) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/pedidos/${pedidoId}/estado?nuevo_estado=${status}`, {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/pedidos/${pedidoId}/estado?nuevo_estado=${status}`, {
                 method: 'PUT'
             });
             if (!response.ok) {
@@ -135,15 +181,21 @@ const ApiClient = {
 
     // Administrative Stats
     async getAdminStats() {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/stats`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/stats`);
         if (!response.ok) throw new Error("Error fetching admin stats");
         return await response.json();
     },
 
     // Administrative Vendedores CRUD
     async getAdminVendedores() {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/vendedores`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/vendedores`);
         if (!response.ok) throw new Error("Error fetching vendedores");
+        return await response.json();
+    },
+
+    async getVendedorById(vendedorId) {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/vendedores/${vendedorId}`);
+        if (!response.ok) throw new Error("Error fetching vendedor");
         return await response.json();
     },
 
@@ -152,7 +204,7 @@ const ApiClient = {
             ? `${this.baseUrl}/api/v1/admin/vendedores/${vendedor.id}` 
             : `${this.baseUrl}/api/v1/admin/vendedores`;
         const method = vendedor.id ? 'PUT' : 'POST';
-        const response = await fetch(url, {
+        const response = await this.fetchWithAuth(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(vendedor)
@@ -165,7 +217,7 @@ const ApiClient = {
     },
 
     async deleteAdminVendedor(vendedorId) {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/vendedores/${vendedorId}`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/vendedores/${vendedorId}`, {
             method: 'DELETE'
         });
         if (!response.ok) {
@@ -177,7 +229,7 @@ const ApiClient = {
 
     // Administrative Clientes CRUD
     async getAdminClientes() {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/clientes`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/clientes`);
         if (!response.ok) throw new Error("Error fetching admin clientes");
         return await response.json();
     },
@@ -187,7 +239,7 @@ const ApiClient = {
             ? `${this.baseUrl}/api/v1/admin/clientes/${cliente.id}` 
             : `${this.baseUrl}/api/v1/admin/clientes`;
         const method = cliente.id ? 'PUT' : 'POST';
-        const response = await fetch(url, {
+        const response = await this.fetchWithAuth(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(cliente)
@@ -200,7 +252,7 @@ const ApiClient = {
     },
 
     async deleteAdminCliente(clienteId) {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/clientes/${clienteId}`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/clientes/${clienteId}`, {
             method: 'DELETE'
         });
         if (!response.ok) throw new Error("Error deleting cliente");
@@ -209,7 +261,7 @@ const ApiClient = {
 
     // Administrative Productos CRUD
     async getAdminProductos() {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/productos`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/productos`);
         if (!response.ok) throw new Error("Error fetching admin productos");
         return await response.json();
     },
@@ -219,7 +271,7 @@ const ApiClient = {
             ? `${this.baseUrl}/api/v1/admin/productos/${producto.id}` 
             : `${this.baseUrl}/api/v1/admin/productos`;
         const method = producto.id ? 'PUT' : 'POST';
-        const response = await fetch(url, {
+        const response = await this.fetchWithAuth(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(producto)
@@ -232,7 +284,7 @@ const ApiClient = {
     },
 
     async deleteAdminProducto(productoId) {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/productos/${productoId}`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/productos/${productoId}`, {
             method: 'DELETE'
         });
         if (!response.ok) throw new Error("Error deleting product");
@@ -241,7 +293,7 @@ const ApiClient = {
 
     // Administrative Orders list
     async getAdminPedidos() {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/pedidos`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/pedidos`);
         if (!response.ok) throw new Error("Error fetching admin orders");
         return await response.json();
     },
@@ -260,13 +312,11 @@ const ApiClient = {
         return await response.json();
     },
 
-    async changePassword(username, passwordActual, passwordNueva) {
-        const response = await fetch(`${this.baseUrl}/api/v1/auth/change-password`, {
+    async changePassword(passwordNueva) {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/auth/change-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                username,
-                password_actual: passwordActual,
                 password_nueva: passwordNueva
             })
         });
@@ -279,13 +329,13 @@ const ApiClient = {
 
     // Despacho
     async getDespachoPedidos() {
-        const response = await fetch(`${this.baseUrl}/api/v1/despacho/pedidos`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/despacho/pedidos`);
         if (!response.ok) throw new Error("Error al obtener pedidos para despacho");
         return await response.json();
     },
 
     async certificarPedido(pedidoId, certificacion) {
-        const response = await fetch(`${this.baseUrl}/api/v1/despacho/pedidos/${pedidoId}/certificar?certificacion=${encodeURIComponent(certificacion)}`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/despacho/pedidos/${pedidoId}/certificar?certificacion=${encodeURIComponent(certificacion)}`, {
             method: 'PUT'
         });
         if (!response.ok) {
@@ -296,7 +346,7 @@ const ApiClient = {
     },
 
     async updateProductoStock(productoId, stock) {
-        const response = await fetch(`${this.baseUrl}/api/v1/despacho/productos/${productoId}/stock?stock=${stock}`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/despacho/productos/${productoId}/stock?stock=${stock}`, {
             method: 'PUT'
         });
         if (!response.ok) {
@@ -308,7 +358,7 @@ const ApiClient = {
 
     // Admin Usuarios CRUD
     async getAdminUsuarios() {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/usuarios`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/usuarios`);
         if (!response.ok) throw new Error("Error al obtener usuarios");
         return await response.json();
     },
@@ -318,7 +368,7 @@ const ApiClient = {
             ? `${this.baseUrl}/api/v1/admin/usuarios/${usuario.id}` 
             : `${this.baseUrl}/api/v1/admin/usuarios`;
         const method = usuario.id ? 'PUT' : 'POST';
-        const response = await fetch(url, {
+        const response = await this.fetchWithAuth(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(usuario)
@@ -331,7 +381,7 @@ const ApiClient = {
     },
 
     async deleteAdminUsuario(usuarioId) {
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/usuarios/${usuarioId}`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/usuarios/${usuarioId}`, {
             method: 'DELETE'
         });
         if (!response.ok) {
@@ -363,7 +413,7 @@ const ApiClient = {
             url += `&vendedor_id=${vendedor}`;
         }
 
-        const response = await fetch(url);
+        const response = await this.fetchWithAuth(url);
         if (!response.ok) {
             throw new Error("Error generando el informe avanzado");
         }
@@ -371,7 +421,7 @@ const ApiClient = {
     },
 
     async getCarteraCliente(clienteId) {
-        const response = await fetch(`${this.baseUrl}/api/v1/cartera/cliente/${clienteId}`);
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/cartera/cliente/${clienteId}`);
         if (!response.ok) {
             if (response.status === 404) {
                 return { facturas: [], total_adeudado: 0, total_vencido: 0 };
@@ -382,7 +432,7 @@ const ApiClient = {
     },
 
     async registrarAbono(facturaId, vendedorId, monto, metodoPago, notas) {
-        const response = await fetch(`${this.baseUrl}/api/v1/cartera/abonos`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/cartera/abonos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -403,7 +453,7 @@ const ApiClient = {
     async uploadAdminClientesExcel(file) {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/upload-clientes`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/upload-clientes`, {
             method: 'POST',
             body: formData
         });
@@ -417,7 +467,7 @@ const ApiClient = {
     async uploadAdminProductosExcel(file) {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/upload-productos`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/upload-productos`, {
             method: 'POST',
             body: formData
         });
@@ -431,7 +481,7 @@ const ApiClient = {
     async uploadAdminVendedoresExcel(file) {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await fetch(`${this.baseUrl}/api/v1/admin/upload-vendedores`, {
+        const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/upload-vendedores`, {
             method: 'POST',
             body: formData
         });

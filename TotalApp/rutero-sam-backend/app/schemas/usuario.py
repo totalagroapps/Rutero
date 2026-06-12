@@ -12,13 +12,13 @@ class LoginOut(BaseModel):
     rol: str
     debe_cambiar_clave: bool
     vendedor_id: int | None = None
+    access_token: str | None = None
+    token_type: str = "bearer"
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ChangePasswordIn(BaseModel):
-    username: str
-    password_actual: str
     password_nueva: str
 
 
