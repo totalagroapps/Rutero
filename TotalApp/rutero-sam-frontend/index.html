@@ -197,17 +197,16 @@
 
         <!-- VIEW: VENDEDOR RUTA (MAPA Y LISTA DE VISITAS) -->
         <section id="view-ruta" class="app-view">
-            <!-- Fullscreen Map Container -->
-            <div id="route-map-container" class="map-fullscreen">
-                <div id="map" style="width: 100%; height: 100%;"></div>
+            <div class="view-switcher">
+                <button class="switch-btn active" id="btn-show-map"><i data-lucide="map"></i> Mapa</button>
+                <button class="switch-btn" id="btn-show-list"><i data-lucide="list"></i> Lista de Clientes</button>
             </div>
 
-            <!-- Bottom Sheet for Client List -->
-            <div id="route-list-container" class="bottom-sheet">
-                <div class="drag-handle-container" id="bottom-sheet-handle">
-                    <div class="drag-handle"></div>
-                </div>
-                
+            <div id="route-map-container" class="map-wrapper active">
+                <div id="map"></div>
+            </div>
+
+            <div id="route-list-container" class="list-wrapper">
                 <div class="route-header">
                     <span>Lista de Clientes</span>
                     <div style="display: flex; gap: 8px;">
@@ -219,9 +218,719 @@
                         </button>
                     </div>
                 </div>
+                <div id="route-clients-list" class="clients-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </section>
 
-                <div class="bottom-sheet-content">
-                    <div id="client-list"></div>
+        <!-- VIEW: VENDEDOR CATALOGO -->
+        <section id="view-catalogo" class="app-view">
+            <div class="search-bar-container">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="catalog-search" placeholder="Buscar productos por SKU o nombre...">
+                </div>
+            </div>
+            <div class="catalog-grid" id="catalog-items-container">
+                <!-- Dynamically Populated -->
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR DETALLE DE VISITA / TOMA DE PEDIDO -->
+        <section id="view-visita" class="app-view">
+            <div class="visit-header">
+                <button id="btn-cancel-visit" class="btn-back"><i data-lucide="arrow-left"></i> Volver</button>
+                <div class="visit-client-title">
+                    <h2 id="visit-client-name">Cliente Seleccionado</h2>
+                    <span id="visit-client-code">PDV000</span>
+                </div>
+            </div>
+
+            <div class="visit-tabs">
+                <button class="visit-tab-btn active" data-step="order"><i data-lucide="shopping-cart"></i> Pedido</button>
+                <button class="visit-tab-btn" data-step="cartera"><i data-lucide="wallet"></i> Cartera</button>
+                <button class="visit-tab-btn" data-step="no-sale"><i data-lucide="alert-triangle"></i> No Venta</button>
+                <button class="visit-tab-btn" data-step="checkout"><i data-lucide="check-square"></i> Cierre</button>
+            </div>
+
+            <!-- STEP: ORDER TAKING -->
+            <div class="visit-content-step active" id="step-order">
+                <div class="order-form-container">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                        <h3 style="margin: 0;">Productos del pedido</h3>
+                        <select id="visit-tipo-cliente" onchange="App.handleTipoClienteChange(this.value)" style="padding: 4px 8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.8rem; background: #f9f9f9;">
+                            <option value="directo">Cliente Directo</option>
+                            <option value="distribuidor">Distribuidor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="search-box minified" style="margin: 12px 0;">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="visit-product-search" placeholder="Buscar producto...">
+                    </div>
+
+                    <div class="visit-products-selection" id="visit-products-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+
+                    <div class="order-summary-box">
+                        <div class="summary-line">
+                            <span>Total productos:</span>
+                            <strong id="order-qty-count">0</strong>
+                        </div>
+                        <div class="summary-line total-line">
+                            <span>Total pedido:</span>
+                            <strong id="order-total-amount">$0.00</strong>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="App.confirmVisitCheckout()">Enviar Pedido</button>
+                </div>
+            </div>
+            <!-- STEP: CARTERA -->
+            <div class="visit-content-step" id="step-cartera">
+                <div style="text-align:center; padding: 20px;">
+                    <i data-lucide="wallet" style="width:48px; height:48px; color:var(--primary-color); margin-bottom:12px;"></i>
+                    <h3 style="margin-bottom:8px;">Estado de Cartera</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;">Revisa las facturas pendientes de este cliente y registra pagos.</p>
+                    
+                    <div style="background:var(--bg-secondary); border-radius:var(--border-radius-md); padding:16px; margin-bottom:16px; text-align:left;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <span style="font-size:0.85rem; color:var(--text-secondary);">Total Adeudado:</span>
+                            <span id="cartera-total-adeudado" style="font-weight:700; color:var(--danger-color);">$0</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="font-size:0.85rem; color:var(--text-secondary);">Vencido (>30d):</span>
+                            <span id="cartera-total-vencido" style="font-weight:700; color:var(--danger-color);">$0</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-outline btn-block" onclick="App.showAbonoModal()">Registrar Pago / Abono</button>
+                    
+                    <div id="cartera-facturas-list" style="margin-top:20px; text-align:left; max-height:250px; overflow-y:auto;">
+                        <!-- Dynamically loaded -->
+                    </div>
+                </div>
+            </div>
+            <!-- STEP: NO SALE REGISTRY -->
+            <div class="visit-content-step" id="step-no-sale">
+                <div class="no-sale-container">
+                    <h3>Registrar Novedad (No Venta)</h3>
+                    <p class="description">Selecciona el motivo de no venta:</p>
+                    
+                    <div class="form-group-radio">
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="negocio_cerrado" checked>
+                            <span class="radio-custom"></span>
+                            <span>Negocio Cerrado / No atiende</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="cliente_ausente">
+                            <span class="radio-custom"></span>
+                            <span>Encargado Ausente</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="sin_presupuesto">
+                            <span class="radio-custom"></span>
+                            <span>Cliente Sin Presupuesto / Dinero</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="no-sale-reason" value="tiene_stock">
+                            <span class="radio-custom"></span>
+                            <span>Tiene Stock Suficiente</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="no-sale-notes">Comentarios Adicionales</label>
+                        <textarea id="no-sale-notes" placeholder="Escribe notas sobre por qué no se realizó la venta..."></textarea>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="App.completeVisit()">Registrar Novedad</button>
+                </div>
+            </div>
+
+            <!-- STEP: CHECKOUT & DIGITAL SIGNATURE -->
+            <div class="visit-content-step" id="step-checkout">
+                <div class="checkout-container">
+                    <h3>Cierre y Conformidad</h3>
+                    
+                    <div class="form-group">
+                        <label>Firma Digital del Cliente</label>
+                        <div class="signature-pad-container">
+                            <canvas id="signature-canvas"></canvas>
+                            <button type="button" id="btn-clear-signature" class="btn btn-secondary btn-sm">
+                                <i data-lucide="trash-2"></i> Limpiar Firma
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fotografía de Respaldo (Opcional)</label>
+                        <div class="photo-upload-box" id="photo-upload-trigger">
+                            <i data-lucide="camera" class="photo-icon"></i>
+                            <span id="photo-status">Tocar para abrir cámara</span>
+                            <input type="file" id="real-photo-input" accept="image/*" capture="environment" class="hidden">
+                            <div id="photo-preview-container" class="hidden">
+                                <img id="photo-preview" src="" alt="Respaldo">
+                                <button type="button" id="btn-remove-photo" class="btn btn-danger btn-xs">Quitar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="btn-complete-visit" class="btn btn-success btn-lg btn-block">
+                            <i data-lucide="check-circle"></i> Finalizar Visita y Check-out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR PEDIDOS HISTORIAL -->
+        <section id="view-pedidos" class="app-view">
+            <div class="view-switcher">
+                <button class="switch-btn active" data-status-filter="PENDIENTE" onclick="App.filterPedidosList('PENDIENTE')">Pendientes</button>
+                <button class="switch-btn" data-status-filter="DESPACHADO" onclick="App.filterPedidosList('DESPACHADO')">Despachados</button>
+                <button class="switch-btn" data-status-filter="CANCELADO" onclick="App.filterPedidosList('CANCELADO')">Cancelados</button>
+            </div>
+            
+            <div id="pedidos-list-container" class="catalog-grid">
+                <!-- Loaded dynamically -->
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR CARTERA (MAIN MENU) -->
+        <section id="view-cartera" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Consulta de Cartera</span>
+            </div>
+            <div class="search-bar-container">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="cartera-main-search" placeholder="Buscar cliente por nombre o código..." oninput="App.renderMainCartera()">
+                </div>
+            </div>
+            <div class="summary-card" style="padding:16px; margin-bottom:12px;">
+                <p style="font-size:0.85rem; color:var(--text-secondary); text-align:center;">Seleccione un cliente para ver su estado de cuenta y registrar pagos.</p>
+            </div>
+            <div id="cartera-main-list">
+                <!-- Loaded dynamically -->
+            </div>
+        </section>
+
+        <!-- VIEW: VENDEDOR AGREGAR CLIENTE -->
+        <section id="view-agregar-cliente" class="app-view">
+            <div class="visit-header">
+                <button type="button" class="btn-back" onclick="App.navigateToView('ruta')">
+                    <i data-lucide="arrow-left"></i> Volver
+                </button>
+                <div class="visit-client-title">
+                    <h2>Registrar Nuevo Comercio</h2>
+                    <span style="color: var(--text-secondary);">Ingresa la información del punto de venta</span>
+                </div>
+            </div>
+
+            <div class="summary-card" style="padding: 20px;">
+                <form id="add-client-form" onsubmit="App.handleSaveCliente(event)">
+                    <div class="form-group">
+                        <label for="new-client-name">Nombre del Comercio / Local *</label>
+                        <input type="text" id="new-client-name" required placeholder="Ej. Almacén Los Aromos">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-client-encargado">Nombre del Encargado</label>
+                        <input type="text" id="new-client-encargado" placeholder="Ej. Pedro Soto">
+                    </div>
+
+                    <div class="form-group" style="position: relative;">
+                        <label for="new-client-direccion">Dirección Completa *</label>
+                        <input type="text" id="new-client-direccion" required placeholder="Ej. Calle Principal 123, Local B" autocomplete="off">
+                        <ul id="new-client-direccion-suggestions" class="autocomplete-suggestions hidden"></ul>
+                    </div>
+
+                    <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="new-client-codigo">Código PDV *</label>
+                            <input type="text" id="new-client-codigo" required placeholder="Ej. PDV007">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-client-frecuencia">Frecuencia de Visita</label>
+                            <select id="new-client-frecuencia">
+                                <option value="Semanal" selected>Semanal</option>
+                                <option value="Quincenal">Quincenal</option>
+                                <option value="Mensual">Mensual</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-client-secuencia">Secuencia en la Ruta</label>
+                        <input type="number" id="new-client-secuencia" min="1" required placeholder="1">
+                    </div>
+
+                    <!-- GPS Coordinates capture box -->
+                    <div class="gps-capture-card" style="background: #f8f9fa; border: 1px dashed rgba(0,0,0,0.12); border-radius: var(--border-radius-md); padding: 16px; margin: 16px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="map-pin" style="color: var(--primary-color); width: 16px; height: 16px;"></i> Ubicación Geográfica (GPS)
+                            </span>
+                            <span id="gps-capture-badge" class="status-badge critical" style="font-size: 0.65rem; padding: 2px 8px; border-radius: 20px;">Sin ubicar</span>
+                        </div>
+                        
+                        <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: var(--text-secondary);">Latitud</label>
+                                <input type="text" id="new-client-lat" readonly placeholder="No capturada" style="background: #e9ecef; font-size: 0.8rem; padding: 8px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: var(--text-secondary);">Longitud</label>
+                                <input type="text" id="new-client-lng" readonly placeholder="No capturada" style="background: #e9ecef; font-size: 0.8rem; padding: 8px;">
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-capture-gps" class="btn btn-secondary btn-block btn-sm" onclick="App.captureClientGps()">
+                            <i data-lucide="locate"></i> Capturar Ubicación Actual
+                        </button>
+
+                        <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                            <label style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px; display: block;">O ajustar en Mapa</label>
+                            <div id="new-client-picker-map" style="height: 180px; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.12); z-index: 1;"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 16px;">
+                        <i data-lucide="save"></i> Guardar y Registrar Comercio
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- ==================== ROLE: DESPACHO VIEWS ==================== -->
+
+        <!-- VIEW: DESPACHO DASHBOARD -->
+        <section id="view-despacho-dashboard" class="app-view">
+            <div class="dashboard-user-banner" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="user-avatar" style="background: rgba(255,255,255,0.2);">
+                    <i data-lucide="truck"></i>
+                </div>
+                <div class="user-welcome">
+                    <h3 id="despacho-welcome-title">Bodega y Despachos</h3>
+                    <p>Módulo de Despacho</p>
+                </div>
+            </div>
+
+            <div class="stats-grid-row">
+                <div class="stat-box pending" style="background: #e6fffa; color: #087f5b; border-color: #96f2d7;">
+                    <div class="stat-icon"><i data-lucide="clock"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="despacho-pending-count">0</span>
+                        <span class="lbl">Por Despachar</span>
+                    </div>
+                </div>
+                <div class="stat-box dispatched" style="background: #e7f5ff; color: #0b7285; border-color: #a5d8ff;">
+                    <div class="stat-icon"><i data-lucide="package"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="despacho-stock-alert-count">0</span>
+                        <span class="lbl">Items Stock Bajo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h2>Acciones de Bodega</h2>
+            </div>
+            <div class="quick-actions-box">
+                <div class="action-btn-card" onclick="App.navigateToView('despacho-certificar')">
+                    <i data-lucide="shield-check" style="color: #10b981;"></i>
+                    <span>Certificar Despacho</span>
+                </div>
+                <div class="action-btn-card" onclick="App.navigateToView('despacho-inventario')">
+                    <i data-lucide="layers" style="color: #10b981;"></i>
+                    <span>Control de Stock</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: DESPACHO INVENTARIO (CONTROL DE STOCK) -->
+        <section id="view-despacho-inventario" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Control de Inventario de Fábrica</span>
+            </div>
+            <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="despacho-stock-search" placeholder="Buscar productos para actualizar stock...">
+                </div>
+            </div>
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">SKU</th>
+                                <th style="padding: 12px 16px;">Nombre</th>
+                                <th style="padding: 12px 16px;">Stock Disponible</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-despacho-stock">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: DESPACHO CERTIFICAR PEDIDOS -->
+        <section id="view-despacho-certificar" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Certificación de Máquinas Despachadas</span>
+            </div>
+            <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="despacho-pedidos-search" placeholder="Buscar por comercio o ID...">
+                </div>
+            </div>
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">Pedido</th>
+                                <th style="padding: 12px 16px;">Comercio</th>
+                                <th style="padding: 12px 16px;">Fecha</th>
+                                <th style="padding: 12px 16px;">Certificación / Estado</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-despacho-pedidos">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== ADMIN INFORMES ==================== -->
+        <section id="view-admin-informes" class="app-view">
+            <div style="padding: 16px;">
+                <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 12px; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px;">
+                    Informes Detallados y Analítica
+                </h2>
+                
+                <div class="summary-card" style="padding: 16px; margin-bottom: 16px; background:#f9fafb;">
+                    <h3 style="font-size: 0.95rem; margin-bottom:12px;"><i data-lucide="filter" style="width:16px;height:16px; vertical-align:text-bottom;"></i> Filtros del Informe</h3>
+                    
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label style="font-size:0.75rem; font-weight:600;">Tipo de Informe</label>
+                        <select id="informe-tipo" class="form-input" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;">
+                            <option value="1">1. Ventas por vendedor</option>
+                            <option value="2">2. Visitas vs planificadas</option>
+                            <option value="3">3. Efectividad de visita</option>
+                            <option value="4">4. Cumplimiento de cuotas</option>
+                            <option value="5">5. Clientes activos vs inactivos</option>
+                            <option value="6">6. Nuevos clientes captados</option>
+                            <option value="7">7. Riesgo de abandono</option>
+                            <option value="8">8. Cobertura geográfica</option>
+                            <option value="9">9. Pedidos por estado</option>
+                            <option value="10">10. Productos más vendidos</option>
+                            <option value="11">11. Baja rotación</option>
+                            <option value="12">12. Devoluciones y cancelaciones</option>
+                            <option value="13">13. Cartera por vendedor</option>
+                            <option value="14">14. Cobranza realiz�da</option>
+                            <option value="15">15. Clientes en mora</option>
+                        </select>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Período</label>
+                            <select id="informe-periodo" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;" onchange="InformesController.toggleRangoFechas()">
+                                <option value="hoy">Hoy</option>
+                                <option value="semana">Esta Semana</option>
+                                <option value="mes" selected>Este Mes</option>
+                                <option value="rango">Rango Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Filtro Específico</label>
+                            <select id="informe-filtro-entidad" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; font-family:var(--font-body); font-size:0.85rem;">
+                                <option value="todos">Todos los Vendedores / Zonas</option>
+                                <!-- Se llenará dinámicamente con vendedores -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fechas Personalizadas Ocultas por defecto -->
+                    <div id="informe-rango-fechas" style="display:none; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Desde</label>
+                            <input type="date" id="informe-fecha-desde" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.75rem; font-weight:600;">Hasta</label>
+                            <input type="date" id="informe-fecha-hasta" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd;">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="InformesController.generarInformeAdmin()" style="margin-top:8px;">
+                        <i data-lucide="play"></i> Generar Informe
+                    </button>
+                </div>
+
+                <!-- Contenedor de Resultados -->
+                <div id="informe-resultados" class="hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h3 style="font-size: 1.05rem;" id="informe-titulo-resultado">Resultados</h3>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-outline btn-sm" onclick="InformesController.exportarInformeActual('pdf')" title="Descargar PDF"><i data-lucide="file-text"></i> PDF</button>
+                            <button class="btn btn-outline btn-sm" onclick="InformesController.exportarInformeActual('excel')" title="Descargar Excel"><i data-lucide="file-spreadsheet"></i> Excel</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Resumen Ejecutivo -->
+                    <div style="background:var(--bg-secondary); border-left: 4px solid var(--primary-color); padding:12px; margin-bottom:16px; border-radius:4px;">
+                        <p style="font-size:0.85rem; font-weight:600; margin-bottom:4px;">Resumen Ejecutivo:</p>
+                        <p id="informe-resumen-ejecutivo" style="font-size:0.82rem; color:var(--text-secondary); line-height:1.4;">
+                            <!-- Máximo 3 líneas inyectadas por JS -->
+                        </p>
+                    </div>
+
+                    <!-- Tabla de Datos -->
+                    <div style="overflow-x:auto; border-radius:4px; border:1px solid rgba(0,0,0,0.05); margin-bottom:16px;">
+                        <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                            <thead id="informe-tabla-head">
+                                <!-- Dinámico -->
+                            </thead>
+                            <tbody id="informe-tabla-body">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== CONFIGURACION Y AJUSTES ==================== -->
+        <section id="view-config" class="app-view">
+            <div class="settings-container">
+                
+                <div class="settings-group">
+                    <h3>Perfil de Usuario</h3>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; color: var(--text-secondary);">
+                        <p><strong>Usuario:</strong> <span id="settings-username">Cargando...</span></p>
+                        <p><strong>Rol:</strong> <span id="settings-role" style="text-transform: capitalize;">Cargando...</span></p>
+                    </div>
+                </div>
+
+                <div class="settings-group role-administrador-only">
+                    <h3>Utilidades de Administrador</h3>
+                    <p class="help-text" style="margin-bottom: 12px;">Herramientas avanzadas para la gestión del sistema.</p>
+                    <div class="settings-actions">
+                        <button id="btn-admin-force-sync" class="btn btn-primary btn-block" onclick="App.syncWithBackend(); App.showToast('Forzando sincronización maestra...');">
+                            <i data-lucide="refresh-cw"></i> Sincronización Forzada
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-group role-vendedor-only">
+                    <h3>Ubicación GPS</h3>
+                    <p class="help-text" style="margin-bottom: 12px;">La app usa el GPS de tu dispositivo para mostrarte en el mapa y calcular rutas. Asegúrate de permitir el acceso a la ubicación cuando el navegador lo solicite.</p>
+                    <button id="btn-recenter-gps" class="btn btn-secondary btn-block" onclick="App.updateUserCoords(); App.showToast('Actualizando ubicación...');">
+                        <i data-lucide="locate"></i> Centrar mapa en mi ubicación
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <h3>PWA - Instalación</h3>
+                    <div class="settings-actions">
+                        <button id="btn-install-pwa" class="btn btn-success btn-block" style="display:none;">
+                            <i data-lucide="download-cloud"></i> Descargar App en Celular
+                        </button>
+                        <p id="pwa-install-help-text" class="help-text">Instala TotalAPP en la pantalla de inicio para acceso rápido en pantalla completa y soporte sin conexión.</p>
+                    </div>
+                </div>
+
+                <div class="settings-group hidden" id="ios-install-instructions">
+                    <h3>Instalar en iPhone / iPad</h3>
+                    <p class="help-text" style="color: var(--text-primary); margin-bottom: 8px;">
+                        Para instalar esta app en tu dispositivo iOS:
+                    </p>
+                    <ol class="help-text" style="padding-left: 16px; display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); line-height: 1.4;">
+                        <li>Abre esta página en el navegador <b>Safari</b>.</li>
+                        <li>Presiona el botón de <b>Compartir</b> <i data-lucide="share" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> en la barra inferior.</li>
+                        <li>Busca y selecciona la opción <b>"Agregar a Inicio"</b>.</li>
+                    </ol>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Acciones de Datos</h3>
+                    <div class="settings-actions">
+                        <button id="btn-download-report" class="btn btn-secondary btn-block">
+                            <i data-lucide="download"></i> Descargar Datos Locales (JSON)
+                        </button>
+                        <button id="btn-reset-cache" class="btn btn-danger btn-block">
+                            <i data-lucide="trash-2"></i> Limpiar Caché y Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-footer">
+                    <p>TotalAPP v1.2.0</p>
+                    <p>Offline-First Enabled</p>
+                </div>
+            </div>
+        </section>
+        <!-- ==================== ROLE: ADMINISTRADOR VIEWS ==================== -->
+
+        <!-- VIEW: ADMIN DASHBOARD -->
+        <section id="view-admin-dashboard" class="app-view">
+            <div class="dashboard-user-banner" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                <div class="user-avatar" style="background: rgba(255,255,255,0.2);">
+                    <i data-lucide="shield-alert"></i>
+                </div>
+                <div class="user-welcome">
+                    <h3 id="admin-welcome-title">Panel de Control</h3>
+                    <p>Administrador</p>
+                </div>
+            </div>
+
+            <div class="stats-grid-row">
+                <div class="stat-box pending" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;">
+                    <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-total-ventas">$0.00</span>
+                        <span class="lbl">Ventas Totales</span>
+                    </div>
+                </div>
+                <div class="stat-box dispatched" style="background: #e6fcf5; color: #059669; border-color: #a7f3d0;">
+                    <div class="stat-icon"><i data-lucide="check-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-pedidos-despachados">0</span>
+                        <span class="lbl">Despachados</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-grid-row">
+                <div class="stat-box pending" style="background: #fff9db; color: #d97706; border-color: #ffe066;">
+                    <div class="stat-icon"><i data-lucide="clock"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-pedidos-pendientes">0</span>
+                        <span class="lbl">Pendientes</span>
+                    </div>
+                </div>
+                <div class="stat-box canceled" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
+                    <div class="stat-icon"><i data-lucide="users"></i></div>
+                    <div class="stat-info">
+                        <span class="num" id="admin-total-vendedores">0</span>
+                        <span class="lbl">Vendedores</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h2>Estado de Pedidos</h2>
+            </div>
+            
+            <div class="summary-card" style="padding: 16px;">
+                <h4 style="margin-bottom:12px; color: var(--text-primary);">Pedidos por Estado</h4>
+                <div style="position: relative; height: 200px; width: 100%;">
+                    <canvas id="chart-pedidos-estado"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN VENDEDORES -->
+        <section id="view-admin-vendedores" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Lista de Vendedores</span>
+                <div style="display:flex; gap:8px;">
+                    <label class="btn btn-outline btn-sm" style="margin:0; cursor:pointer;" title="Importar Excel">
+                        <i data-lucide="upload"></i> Importar
+                        <input type="file" id="file-vendedores-excel" accept=".xlsx" style="display:none;" onchange="App.handleUploadVendedoresExcel(event)">
+                    </label>
+                    <button class="btn btn-primary btn-sm" onclick="AdminController.openVendedorModal()">
+                        <i data-lucide="plus"></i> Nuevo
+                    </button>
+                </div>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="table-vendedores" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">ID</th>
+                                <th style="padding: 12px 16px;">Nombre</th>
+                                <th style="padding: 12px 16px;">Zona</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-vendedores">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN CLIENTES -->
+        <section id="view-admin-clientes" class="app-view">
+            <div class="route-header" style="margin-bottom:16px; flex-wrap: wrap; gap: 8px;">
+                <span>Lista de Comercios</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('input-import-clientes').click()" style="background:#10b981; color:white; border-color:#10b981;">
+                        <i data-lucide="upload-cloud"></i> Importar
+                    </button>
+                    <input type="file" id="input-import-clientes" accept=".xlsx" style="display:none;" onchange="App.importClientesExcel(event)">
+                    <button class="btn btn-primary btn-sm" onclick="AdminController.openClienteAdminModal()">
+                        <i data-lucide="plus"></i> Nuevo
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-bar-container" style="margin-bottom: 12px; padding: 0;">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="admin-cliente-search" placeholder="Buscar comercios...">
+                </div>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md);">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table" id="table-clientes" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem;">
+                        <thead>
+                            <tr style="background: #f3f4f6; color: var(--text-secondary); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="padding: 12px 16px;">Comercio / Encargado</th>
+                                <th style="padding: 12px 16px;">Dirección</th>
+                                <th style="padding: 12px 16px;">Vendedor</th>
+                                <th style="padding: 12px 16px;">Sec.</th>
+                                <th style="padding: 12px 16px;">Estado</th>
+                                <th style="padding: 12px 16px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-clientes">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN RUTAS / RECORRIDOS EN MAPA -->
+        <section id="view-admin-rutas" class="app-view">
+            <div class="summary-card" style="padding: 16px; margin-bottom: 12px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="admin-select-vendedor-ruta" style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary);">Ver Recorrido de Vendedor</label>
+                    <select id="admin-select-vendedor-ruta" onchange="App.loadAdminRouteOnMap()" style="width: 100%; padding: 10px; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.1); margin-top: 6px; font-family: var(--font-body); font-size: 0.85rem;">
+                        <!-- Loaded dynamically -->
+                    </select>
                 </div>
             </div>
             
