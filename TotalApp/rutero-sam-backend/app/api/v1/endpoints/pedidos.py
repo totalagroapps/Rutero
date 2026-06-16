@@ -89,8 +89,8 @@ def sincronizar_pedidos(
                 nueva_factura = FacturaPendiente(
                     cliente_id=pedido.cliente_id,
                     numero_factura=f"F-{pedido.id}-{num+1}",
-                    fecha_emision=pedido.fecha_hora,
-                    fecha_vencimiento=pedido.fecha_hora + timedelta(days=30),
+                    fecha_emision=pedido.fecha_hora.replace(tzinfo=None),
+                    fecha_vencimiento=(pedido.fecha_hora + timedelta(days=30)).replace(tzinfo=None),
                     monto_total=pedido.total,
                     saldo_pendiente=pedido.total,
                     estado="VIGENTE"
