@@ -23,7 +23,7 @@ class Pedido(Base):
     fecha_hora: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     total: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     tipo_cliente: Mapped[str] = mapped_column(String(50), nullable=False, default="directo")
-    estado_sincronizacion: Mapped[str] = mapped_column(String(30), nullable=False, default="SINCRONIZADO")
+    estado_sincronizacion: Mapped[str] = mapped_column(String(30), nullable=False, default="PENDIENTE")
     fecha_aprobacion: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     fecha_despacho: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     fecha_entrega: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

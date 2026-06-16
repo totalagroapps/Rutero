@@ -63,7 +63,7 @@ def sincronizar_pedidos(
                 fecha_hora=pedido_in.fecha_hora,
                 total=pedido_in.total,
                 tipo_cliente=pedido_in.tipo_cliente,
-                estado_sincronizacion="SINCRONIZADO",
+                estado_sincronizacion="PENDIENTE",
             )
             pedido.detalles = [
                 DetallePedido(
