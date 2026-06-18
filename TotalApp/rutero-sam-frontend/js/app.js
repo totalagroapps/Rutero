@@ -75,9 +75,13 @@ const App = {
         // 6. Set initial coordinates
         this.updateUserCoords();
 
-        // 7. Load local cached data & fetch latest from backend
-        this.loadCachedData();
-        await this.syncWithBackend();
+        // 7. Check login state
+        await this.checkLoginState();
+
+        if (this.state.isLoggedIn && this.state.activeRole === 'vendedor') {
+            await this.loadCachedData();
+            await this.syncWithBackend();
+        }
 
         // Populate client dropdown for login
         this.populateClientLoginSelector();
@@ -85,15 +89,12 @@ const App = {
         // 8. Register UI events
         this.initUIEventListeners();
 
-        // Show role selection screen initially unless already logged in
-        this.checkLoginState();
-
         // Initialize Lucide icons
         this.refreshIcons();
     },
 
     // Check if user was already logged in
-    checkLoginState() {
+    async checkLoginState() {
         const savedRole = localStorage.getItem('sam_active_role');
         const savedIsLoggedIn = localStorage.getItem('sam_is_logged_in') === 'true';
         const savedUser = localStorage.getItem('sam_logged_user');
@@ -410,6 +411,8 @@ const App = {
                     nombre: 'Vendedor ' + this.state.user.username, 
                     zona: 'Zona Asignada' 
                 };
+                await this.loadCachedData();
+                await this.syncWithBackend();
             }
             this.showAppMain();
         } catch (err) {
@@ -620,10 +623,10 @@ const App = {
 
         // Save local
         this.state.clientes.push(newClient);
-        localStorage.setItem('sam_cache_clientes', JSON.stringify(this.state.clientes));
+        OfflineStore.setItem(this.getDbPrefix() + 'clientes', this.state.clientes);
 
         this.state.unsyncedClientes.push(newClient);
-        localStorage.setItem('sam_unsynced_clientes', JSON.stringify(this.state.unsyncedClientes));
+        OfflineStore.setItem(this.getDbPrefix() + 'unsynced_clientes', this.state.unsyncedClientes);
 
         this.updateSyncBadge();
         this.showToast("Comercio registrado localmente.");
@@ -651,31 +654,40 @@ const App = {
         }
     },
 
+    // Prefix helper
+    getDbPrefix() {
+        const uId = this.state.user ? this.state.user.id : 'anon';
+        const vId = this.state.vendedor ? this.state.vendedor.id : 'anon';
+        return u\_v\_;
+    },
+
     // Load state from local storage cache
-    loadCachedData() {
-        const cachedClientes = localStorage.getItem('sam_cache_clientes');
+    async loadCachedData() {
+        const prefix = this.getDbPrefix();
+
+        const cachedClientes = await OfflineStore.getItem(prefix + 'clientes');
         if (cachedClientes) {
-            this.state.clientes = JSON.parse(cachedClientes);
+            this.state.clientes = cachedClientes;
         }
 
-        const cachedCatalogo = localStorage.getItem('sam_cache_catalogo');
+        const cachedCatalogo = await OfflineStore.getItem(prefix + 'catalogo');
         if (cachedCatalogo) {
-            this.state.catalogo = JSON.parse(cachedCatalogo);
+            this.state.catalogo = cachedCatalogo;
         }
 
-        const cachedVisitStates = localStorage.getItem('sam_visit_states');
+        const cachedVisitStates = await OfflineStore.getItem(prefix + 'visit_states');
         if (cachedVisitStates) {
-            this.state.visitStates = JSON.parse(cachedVisitStates);
+            this.state.visitStates = cachedVisitStates;
         }
 
-        const cachedUnsynced = localStorage.getItem('sam_unsynced_orders');
+        const cachedUnsynced = await OfflineStore.getItem(prefix + 'unsynced_orders');
         if (cachedUnsynced) {
-            this.state.unsyncedOrders = JSON.parse(cachedUnsynced);
+            this.state.unsyncedOrders = cachedUnsynced;
         }
 
-        const cachedUnsyncedClientes = localStorage.getItem('sam_unsynced_clientes');
+        const cachedUnsyncedClientes = await OfflineStore.getItem(prefix + 'unsynced_clientes');
         if (cachedUnsyncedClientes) {
-            this.state.unsyncedClientes = JSON.parse(cachedUnsyncedClientes);
+            this.state.unsyncedClientes = cachedUnsyncedClientes;
         }
         
         this.updateSyncBadge();
@@ -707,7 +719,7 @@ const App = {
                 
                 if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
                     this.state.unsyncedOrders = [];
-                    localStorage.setItem('sam_unsynced_orders', JSON.stringify([]));
+                    OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', []);
                     this.updateSyncBadge();
                     this.showToast("Pedidos sincronizados con éxito!");
                 }
@@ -720,7 +732,7 @@ const App = {
                 
                 if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
                     this.state.unsyncedClientes = [];
-                    localStorage.setItem('sam_unsynced_clientes', JSON.stringify([]));
+                    OfflineStore.setItem(this.getDbPrefix() + 'unsynced_clientes', []);
                     this.updateSyncBadge();
                     this.showToast("Comercios sincronizados con éxito!");
                 }
@@ -730,11 +742,11 @@ const App = {
             const vid = (this.state.user && this.state.user.vendedor_id) ? this.state.user.vendedor_id : 1;
             const vendedorRuta = await ApiClient.getRuta(vid);
             this.state.clientes = vendedorRuta;
-            localStorage.setItem('sam_cache_clientes', JSON.stringify(vendedorRuta));
+            OfflineStore.setItem(this.getDbPrefix() + 'clientes', vendedorRuta);
 
             const catalogoData = await ApiClient.getCatalogo();
             this.state.catalogo = catalogoData;
-            localStorage.setItem('sam_cache_catalogo', JSON.stringify(catalogoData));
+            OfflineStore.setItem(this.getDbPrefix() + 'catalogo', catalogoData);
 
             // Record last successful sync timestamp
             localStorage.setItem('sam_last_sync', new Date().toLocaleString());
@@ -1143,12 +1155,12 @@ const App = {
             };
 
             this.state.unsyncedOrders.push(newOrder);
-            localStorage.setItem('sam_unsynced_orders', JSON.stringify(this.state.unsyncedOrders));
+            OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', this.state.unsyncedOrders);
             this.updateSyncBadge();
         }
 
         this.state.visitStates[client.codigo_pdv] = status;
-        localStorage.setItem('sam_visit_states', JSON.stringify(this.state.visitStates));
+        OfflineStore.setItem(this.getDbPrefix() + 'visit_states', this.state.visitStates);
 
         this.showToast(`Visita registrada.`);
         this.state.activeVisit = null;
@@ -1757,7 +1769,7 @@ const App = {
         }
 
         this.state.clientes = optimized;
-        localStorage.setItem('sam_cache_clientes', JSON.stringify(this.state.clientes));
+        OfflineStore.setItem(this.getDbPrefix() + 'clientes', this.state.clientes);
         this.renderRutaView();
 
         // Sync reordered route with backend
@@ -1874,33 +1886,74 @@ const App = {
 
     // ==================== ADMIN METHODS ====================
 
-    // Load admin tables and stats
+    // Load admin tables and stats
 
-    // Render Vendedores list
 
-    // Render Clientes list
 
-    // Render Productos catalog
 
-    // Render global Pedidos list
+    // Render Vendedores list
 
-    // Admin: Update order status (dispatch or cancel)
 
-    // Populate sellers selectors in admin forms
+    // Render Clientes list
 
-    // Render seller route on admin map view
 
-    // Vendedores Modals & CRUD
+    // Render Productos catalog
 
-    // Clientes Modals & CRUD
 
-    // Productos Modals & CRUD
+    // Render global Pedidos list
 
-    // ==================== DESPACHO / BODEGA METHODS ====================
 
-    // ==================== ADMIN USUARIOS CRUD ====================
+    // Admin: Update order status (dispatch or cancel)
 
-    // ==================== ADMIN INFORMES ====================
+
+    // Populate sellers selectors in admin forms
+
+
+
+    // Render seller route on admin map view
+
+
+    // Vendedores Modals & CRUD
+
+
+
+
+
+    // Clientes Modals & CRUD
+
+
+
+
+
+
+    // Productos Modals & CRUD
+
+
+
+
+
+    // ==================== DESPACHO / BODEGA METHODS ====================
+
+
+
+
+
+
+
+
+
+    // ==================== ADMIN USUARIOS CRUD ====================
+
+
+
+
+
+
+
+    // ==================== ADMIN INFORMES ====================
+
+
+
 
     };
 
