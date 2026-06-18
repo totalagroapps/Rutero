@@ -658,7 +658,7 @@ const App = {
     getDbPrefix() {
         const uId = this.state.user ? this.state.user.id : 'anon';
         const vId = this.state.vendedor ? this.state.vendedor.id : 'anon';
-        return u\_v\_;
+        return `u${uId}_v${vId}_`;
     },
 
     // Load state from local storage cache
