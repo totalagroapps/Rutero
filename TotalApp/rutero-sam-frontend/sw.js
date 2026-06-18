@@ -1,8 +1,9 @@
-﻿const CACHE_NAME = 'sam-rutero-cache-v15';
+﻿const CACHE_NAME = 'sam-rutero-cache-v16';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/css/styles.css',
+  '/js/offline-store.js',
   '/js/api.js',
   '/js/map.js',
   '/js/modals.js',
@@ -46,26 +47,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Strategy for API calls: Network-first
+  // Strategy for API calls: Network-only. NEVER CACHE PRIVATE DATA IN SERVICE WORKER.
   if (requestUrl.pathname.includes('/api/v1/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // If response is valid, clone it and put in cache for offline backup
-          if (response.ok && event.request.method === 'GET') {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fallback to cache if network fails (offline mode)
-          console.log('[Service Worker] Network failed, serving cached API data for:', requestUrl.pathname);
-          return caches.match(event.request);
-        })
-    );
+    event.respondWith(fetch(event.request));
     return;
   }
 
@@ -113,4 +97,3 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
-
