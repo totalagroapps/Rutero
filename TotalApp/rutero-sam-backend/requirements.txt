@@ -13,3 +13,5 @@ PyJWT
 
 
 alembic
+
+reportlab

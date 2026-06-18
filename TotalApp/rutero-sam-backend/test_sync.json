@@ -1,0 +1,21 @@
+{
+  "pedidos": [
+    {
+      "uuid_dispositivo": "123e4567-e89b-12d3-a456-426614174000",
+      "cliente_id": 7,
+      "vendedor_id": 1,
+      "latitud_captura": 0,
+      "longitud_captura": 0,
+      "fecha_hora": "2026-06-16T12:00:00Z",
+      "total": 5000,
+      "tipo_cliente": "distribuidor",
+      "detalles": [
+        {
+          "producto_id": 1,
+          "cantidad": 1,
+          "precio_unitario": 5000
+        }
+      ]
+    }
+  ]
+}

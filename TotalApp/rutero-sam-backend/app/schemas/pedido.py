@@ -66,3 +66,40 @@ class PedidoOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+from datetime import datetime
+from decimal import Decimal
+
+from pydantic import BaseModel, Field
+
+class DetallePedidoPdfIn(BaseModel):
+    codigo: str
+    descripcion: str
+    cantidad: int = Field(gt=0)
+    precio_unitario: Decimal = Field(ge=0)
+    subtotal: Decimal = Field(ge=0)
+    notas: str | None = None
+
+class PedidoPdfIn(BaseModel):
+    uuid_dispositivo: str = Field(min_length=10, max_length=80)
+    vendedor_id: int
+    vendedor_nombre: str
+    # Cliente
+    cliente_id: int | None = None
+    nombre_cliente: str
+    nit_cedula: str | None = None
+    direccion: str | None = None
+    ciudad: str | None = None
+    telefono: str | None = None
+    correo: str | None = None
+    # Detalles
+    productos: list[DetallePedidoPdfIn] = Field(min_length=1)
+    # Totales
+    subtotal: Decimal = Field(ge=0)
+    iva: Decimal = Field(ge=0)
+    descuento: Decimal = Field(ge=0)
+    total: Decimal = Field(ge=0)
+    # Observaciones
+    forma_pago: str | None = None
+    condiciones_entrega: str | None = None
+    fecha_estimada_entrega: str | None = None

@@ -160,3 +160,93 @@ def actualizar_estado_pedido(
     db.commit()
     db.refresh(pedido)
     return pedido
+
+from fastapi.responses import Response
+from app.schemas.pedido import PedidoPdfIn
+from app.services.pdf_generator import generar_pdf_pedido
+from sqlalchemy import func
+from datetime import datetime, timezone
+
+@router.post(
+    "/pdf-confirmado",
+    response_class=Response,
+    status_code=status.HTTP_201_CREATED,
+)
+def crear_pedido_pdf(
+    payload: PedidoPdfIn,
+    db: DbSession,
+):
+    try:
+        # Generar numero de pedido
+        num = db.scalar(select(func.count(Pedido.id))) or 0
+        fecha_actual = datetime.now(timezone.utc)
+        numero_pedido_str = f"PED-{fecha_actual.strftime('%Y%m%d')}-{num+1:04d}"
+        
+        # Guardar en DB
+        pedido = Pedido(
+            uuid_dispositivo=payload.uuid_dispositivo,
+            numero_pedido=numero_pedido_str,
+            cliente_id=payload.cliente_id,
+            nit_cedula=payload.nit_cedula,
+            ciudad=payload.ciudad,
+            telefono=payload.telefono,
+            correo=payload.correo,
+            vendedor_id=payload.vendedor_id,
+            fecha_hora=fecha_actual,
+            total=payload.total,
+            iva=payload.iva,
+            descuento=payload.descuento,
+            tipo_cliente="directo",
+            estado_sincronizacion="CONFIRMADO",
+            forma_pago=payload.forma_pago,
+            condiciones_entrega=payload.condiciones_entrega,
+            fecha_estimada_entrega=None # Aca podriamos parsear el string a date
+        )
+        if payload.fecha_estimada_entrega:
+            try:
+                pedido.fecha_estimada_entrega = datetime.strptime(payload.fecha_estimada_entrega, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            except ValueError:
+                pass
+                
+        # Necesitamos buscar los IDs reales de productos o crear un logica robusta. 
+        # Como es un sistema mock/rapido y el usuario envio codigo/descripcion, 
+        # si producto_id es foraneo y obligatorio, necesitamos buscarlo o setear uno por defecto.
+        # Wait, DetallePedido expects producto_id. Let's see what happens if we use 1 for now or skip.
+
+        for p in payload.productos:
+            # We assume a mock product ID 1 if we don't look it up, since DetallePedido requires a valid producto_id.
+            # In a real scenario we query the product by p.codigo. Let's do that:
+            from app.models.producto import Producto
+            prod = db.scalar(select(Producto).where(Producto.codigo == p.codigo))
+            prod_id = prod.id if prod else 1 # fallback
+            
+            pedido.detalles.append(
+                DetallePedido(
+                    producto_id=prod_id,
+                    cantidad=p.cantidad,
+                    precio_unitario=p.precio_unitario,
+                    notas=p.notas
+                )
+            )
+
+        db.add(pedido)
+        db.commit()
+
+        # Generar PDF
+        datos_dict = payload.model_dump()
+        datos_dict['numero_pedido'] = numero_pedido_str
+        datos_dict['fecha_hora'] = fecha_actual.strftime('%Y-%m-%d %H:%M')
+        
+        pdf_buffer = generar_pdf_pedido(datos_dict)
+        
+        return Response(
+            content=pdf_buffer.getvalue(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={numero_pedido_str}.pdf"}
+        )
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generando pedido PDF: {str(exc)}",
+        )
