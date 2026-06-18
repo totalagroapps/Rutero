@@ -393,6 +393,96 @@
         </section>
 
         <!-- VIEW: VENDEDOR PEDIDOS HISTORIAL -->
+        
+        <!-- ============================================== -->
+        <!-- VIEW: CREAR PEDIDO PDF (NEW)                   -->
+        <!-- ============================================== -->
+        <section id="view-crear-pedido-pdf" class="app-view hidden">
+            <h2 class="view-title"><i data-lucide="file-text"></i> Crear Pedido PDF</h2>
+            
+            <form id="form-pedido-pdf" class="sam-card" onsubmit="PedidoPdf.submitForm(event)">
+                <div style="margin-bottom: 20px;">
+                    <h3>Datos del Cliente</h3>
+                    <div class="form-group">
+                        <label>Seleccionar Cliente Existente (Opcional)</label>
+                        <select id="pdf-cliente-select" class="sam-input" onchange="PedidoPdf.onClienteSelect()">
+                            <option value="">-- Nuevo Cliente / Texto Libre --</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="text" id="pdf-nombre-cliente" class="sam-input" placeholder="Nombre / Razón Social *" required>
+                        <input type="text" id="pdf-nit" class="sam-input" placeholder="NIT o Cédula">
+                        <input type="text" id="pdf-direccion" class="sam-input" placeholder="Dirección">
+                        <input type="text" id="pdf-ciudad" class="sam-input" placeholder="Ciudad">
+                        <input type="tel" id="pdf-telefono" class="sam-input" placeholder="Teléfono">
+                        <input type="email" id="pdf-correo" class="sam-input" placeholder="Correo Electrónico">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h3>Productos</h3>
+                    <div class="table-responsive">
+                        <table class="sam-table" id="pdf-productos-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unit.</th>
+                                    <th>Subtotal</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="sam-btn btn-secondary" onclick="PedidoPdf.addRow()" style="margin-top:10px;">
+                        <i data-lucide="plus"></i> Agregar Producto
+                    </button>
+                </div>
+
+                <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3>Observaciones</h3>
+                        <input type="text" id="pdf-forma-pago" class="sam-input" placeholder="Forma de pago (Ej: Contado)">
+                        <input type="text" id="pdf-condiciones" class="sam-input" placeholder="Condiciones de entrega" style="margin-top:10px;">
+                        <input type="date" id="pdf-fecha-entrega" class="sam-input" style="margin-top:10px;">
+                    </div>
+                    <div style="background:#f4f4f4; padding:15px; border-radius:8px;">
+                        <h3>Totales</h3>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span>Subtotal:</span>
+                            <span id="pdf-lbl-subtotal"></span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px; align-items:center;">
+                            <span>Descuento ($):</span>
+                            <input type="number" id="pdf-val-descuento" class="sam-input" style="width:80px; padding:2px;" value="0" min="0" oninput="PedidoPdf.calculateTotals()">
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px; align-items:center;">
+                            <span>IVA (%):</span>
+                            <input type="number" id="pdf-val-iva" class="sam-input" style="width:80px; padding:2px;" value="19" min="0" oninput="PedidoPdf.calculateTotals()">
+                        </div>
+                        <hr>
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
+                            <span>TOTAL:</span>
+                            <span id="pdf-lbl-total" style="color:var(--primary-color);"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="sam-btn btn-primary" id="pdf-btn-submit" style="flex: 1;">
+                        <i data-lucide="file-down"></i> Confirmar y Generar Comprobante
+                    </button>
+                    <button type="button" class="sam-btn btn-secondary hidden" id="pdf-btn-download" onclick="PedidoPdf.downloadLastPdf()" style="flex: 1;">
+                        <i data-lucide="download"></i> Descargar de Nuevo
+                    </button>
+                </div>
+            </form>
+        </section>
+
         <section id="view-pedidos" class="app-view">
             <div class="view-switcher">
                 <button class="switch-btn active" data-status-filter="PENDIENTE" onclick="App.filterPedidosList('PENDIENTE')">Pendientes</button>
@@ -1054,6 +1144,11 @@
             <i data-lucide="map-pin"></i>
             <span>Clientes</span>
         </button>
+        
+        <button class="nav-item role-vendedor-only" data-view="crear-pedido-pdf" onclick="PedidoPdf.init()">
+            <i data-lucide="file-plus"></i>
+            <span>Nuevo PDF</span>
+        </button>
         <button class="nav-item role-vendedor-only" data-view="pedidos">
             <i data-lucide="shopping-bag"></i>
             <span>Pedidos</span>
@@ -1179,6 +1274,7 @@
     <script src="js/admin.js"></script>
     <script src="js/despacho.js"></script>
     <script src="js/informes.js"></script>
+    <script src="js/pedido_pdf.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
