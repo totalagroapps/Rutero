@@ -9,10 +9,11 @@ from sqlalchemy import select
 
 from app.db.database import get_db
 from app.models.usuario import Usuario
+from app.core.config import settings
 
 DbSession = Annotated[Session, Depends(get_db)]
 
-SECRET_KEY = "sam_super_secret_key_change_in_prod"
+SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
