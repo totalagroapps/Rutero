@@ -250,3 +250,31 @@ def crear_pedido_pdf(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generando pedido PDF: {str(exc)}",
         )
+
+@router.post(
+    "/generar_pdf",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+)
+def generar_pdf_estatico(
+    payload: PedidoPdfIn,
+):
+    try:
+        # Generar PDF
+        datos_dict = payload.model_dump()
+        datos_dict['numero_pedido'] = "PEDIDO-OFFLINE"
+        fecha_actual = datetime.now(timezone.utc)
+        datos_dict['fecha_hora'] = fecha_actual.strftime('%Y-%m-%d %H:%M')
+        
+        pdf_buffer = generar_pdf_pedido(datos_dict)
+        
+        return Response(
+            content=pdf_buffer.getvalue(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=Pedido_{payload.nombre_cliente}.pdf"}
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generando pedido PDF: {str(exc)}",
+        )

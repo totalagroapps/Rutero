@@ -1157,6 +1157,11 @@ const App = {
             this.state.unsyncedOrders.push(newOrder);
             OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', this.state.unsyncedOrders);
             this.updateSyncBadge();
+            
+            // Trigger PDF Download
+            if (confirm("Venta registrada exitosamente.\n¿Desea descargar el comprobante PDF del pedido?")) {
+                this.downloadReceiptPdf(newOrder, client);
+            }
         }
 
         this.state.visitStates[client.codigo_pdv] = status;
@@ -1965,3 +1970,65 @@ document.addEventListener('DOMContentLoaded', () => {
     App.init();
 });
 App.registerServiceWorker();
+
+    async downloadReceiptPdf(order, client) {
+        try {
+            this.showToast("Generando comprobante PDF...", false);
+            
+            // Reconstruir productos con descripciones
+            const productosPdf = order.detalles.map(d => {
+                const prod = this.state.catalogo.find(p => p.id === d.producto_id);
+                return {
+                    codigo: prod ? prod.codigo : d.producto_id.toString(),
+                    descripcion: prod ? prod.descripcion : 'Producto ID ' + d.producto_id,
+                    cantidad: d.cantidad,
+                    precio_unitario: d.precio_unitario,
+                    subtotal: d.cantidad * d.precio_unitario
+                };
+            });
+
+            const payload = {
+                uuid_dispositivo: order.uuid_dispositivo,
+                vendedor_id: order.vendedor_id,
+                vendedor_nombre: this.state.user ? this.state.user.username : 'Vendedor',
+                cliente_id: client.id,
+                nombre_cliente: client.nombre,
+                nit_cedula: client.codigo_pdv,
+                direccion: client.direccion,
+                ciudad: 'Ciudad',
+                telefono: '',
+                correo: '',
+                productos: productosPdf,
+                subtotal: order.total,
+                iva: 0,
+                descuento: 0,
+                total: order.total,
+                forma_pago: 'Contado',
+                condiciones_entrega: '',
+                fecha_estimada_entrega: null
+            };
+
+            const response = await fetch(API_URL + '/pedidos/generar_pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Error en el servidor");
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "Comprobante_" + client.nombre.replace(/\\s+/g, '_') + ".pdf";
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            
+            this.showToast("PDF descargado correctamente.");
+        } catch(e) {
+            console.error(e);
+            this.showToast("Error al generar PDF: " + e.message, true);
+        }
+    },
