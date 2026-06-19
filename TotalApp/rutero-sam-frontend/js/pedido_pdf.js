@@ -1,9 +1,8 @@
-﻿const PedidoPdf = {
+const PedidoPdf = {
     productos: [],
     lastPdfBlob: null,
 
     init() {
-        // Inicializar con 1 fila vacia
         if (this.productos.length === 0) {
             this.addRow();
         }
@@ -14,17 +13,15 @@
         const select = document.getElementById('pdf-cliente-select');
         if (!select) return;
         
-        // Limpiar opciones previas manteniendo la primera
         while (select.options.length > 1) {
             select.remove(1);
         }
 
-        if (App && App.state && App.state.clientes) {
-            App.state.clientes.forEach(c => {
+        if (window.App && window.App.state && window.App.state.clientes) {
+            window.App.state.clientes.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
                 opt.text = c.nombre + ' (' + c.codigo_pdv + ')';
-                // Guardar info extra para autocompletar
                 opt.dataset.nombre = c.nombre;
                 opt.dataset.direccion = c.direccion;
                 opt.dataset.nit = c.codigo_pdv;
@@ -76,8 +73,6 @@
             if (field === 'cantidad' || field === 'precio_unitario') {
                 p.subtotal = p.cantidad * p.precio_unitario;
             }
-            // re-render unicamente esa fila? Para ser simples, re-render todo o solo totales.
-            // Para mantener fluidez:
             const tr = document.getElementById('pdf-row-' + id);
             if (tr) {
                 const subEl = tr.querySelector('.row-subtotal');
@@ -100,7 +95,7 @@
                 <td><input type="text" class="sam-input" placeholder="Descripción" value="" oninput="PedidoPdf.updateRow('', 'descripcion', this.value)"></td>
                 <td><input type="number" class="sam-input" value="" min="1" oninput="PedidoPdf.updateRow('', 'cantidad', this.value)"></td>
                 <td><input type="number" class="sam-input" value="" min="0" oninput="PedidoPdf.updateRow('', 'precio_unitario', this.value)"></td>
-                <td class="row-subtotal">{p.subtotal.toLocaleString()}</td>
+                <td class="row-subtotal">$\</td>
                 <td><button type="button" class="sam-btn btn-secondary" style="padding:5px; background:var(--danger-color); color:white;" onclick="PedidoPdf.removeRow('')">X</button></td>
             ;
             tbody.appendChild(tr);
@@ -148,8 +143,8 @@
             
             const payload = {
                 uuid_dispositivo: 'pdf_' + Date.now() + '_' + Math.random(),
-                vendedor_id: App.state.vendedor ? App.state.vendedor.id : 1,
-                vendedor_nombre: App.state.vendedor ? App.state.vendedor.nombre : 'Vendedor',
+                vendedor_id: window.App && window.App.state && window.App.state.vendedor ? window.App.state.vendedor.id : 1,
+                vendedor_nombre: window.App && window.App.state && window.App.state.vendedor ? window.App.state.vendedor.nombre : 'Vendedor',
                 cliente_id: cliente_id ? parseInt(cliente_id) : null,
                 nombre_cliente: document.getElementById('pdf-nombre-cliente').value,
                 nit_cedula: document.getElementById('pdf-nit').value,
@@ -189,12 +184,8 @@
             const blob = await response.blob();
             this.lastPdfBlob = blob;
             
-            // Forzar descarga
             this.downloadLastPdf(payload.nombre_cliente);
-
-            // Mostrar boton de re-descargar
             btnD.classList.remove('hidden');
-
             alert("Pedido confirmado y PDF generado correctamente.");
         } catch (error) {
             console.error("Error PDF:", error);
@@ -211,7 +202,7 @@
         const url = window.URL.createObjectURL(this.lastPdfBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = "Pedido_" + clientName.replace(/\\s+/g, '_') + ".pdf";
+        a.download = "Pedido_" + clientName.replace(/\s+/g, '_') + ".pdf";
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

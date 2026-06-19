@@ -1960,17 +1960,7 @@ const App = {
 
 
 
-    };
-
-// Global hook for events
-window.App = App;
-
-// Run app init when DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
-});
-App.registerServiceWorker();
-
+    
     async downloadReceiptPdf(order, client) {
         try {
             this.showToast("Generando comprobante PDF...", false);
@@ -2020,7 +2010,7 @@ App.registerServiceWorker();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "Comprobante_" + client.nombre.replace(/\\s+/g, '_') + ".pdf";
+            a.download = "Comprobante_" + client.nombre.replace(/\s+/g, '_') + ".pdf";
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -2031,4 +2021,14 @@ App.registerServiceWorker();
             console.error(e);
             this.showToast("Error al generar PDF: " + e.message, true);
         }
-    },
+    }
+};
+
+// Global hook for events
+window.App = App;
+
+// Run app init when DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+});
+App.registerServiceWorker();
