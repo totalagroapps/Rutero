@@ -956,6 +956,12 @@ const App = {
         });
     },
 
+    saveVisitState() {
+        OfflineStore.setItem(this.getDbPrefix() + 'active_visit', this.state.activeVisit);
+        OfflineStore.setItem(this.getDbPrefix() + 'cart', this.state.cart);
+        OfflineStore.setItem(this.getDbPrefix() + 'tipo_cliente', this.state.tipoCliente);
+    },
+
     startVisit(clientId) {
         const client = this.state.clientes.find(c => c.id === clientId);
         if (!client) return;
