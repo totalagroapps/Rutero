@@ -735,11 +735,23 @@ const App = {
                 const syncResult = await ApiClient.syncClientes(this.state.unsyncedClientes);
                 
                 if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
-                    // Update offline orders that might be referencing these temporary client IDs
-                    // This is complex. For now, just rely on backend handling temporary IDs or failing gracefully
-                    // Actually, if backend receives a huge timestamp as client_id, it will fail FK.
-                    // The backend returns the new IDs! 
-                    // Let's assume the user was NOT creating offline clients for now, or just let them sync.
+                    // Update offline orders that reference these temporary client IDs
+                    if (syncResult.clientes && this.state.unsyncedOrders.length > 0) {
+                        syncResult.clientes.forEach(serverClient => {
+                            // Find the old client to get its temporary ID
+                            const oldClient = this.state.unsyncedClientes.find(c => c.uuid_dispositivo === serverClient.uuid_dispositivo);
+                            if (oldClient) {
+                                // Update any unsynced order that used this temporary ID
+                                this.state.unsyncedOrders.forEach(order => {
+                                    if (order.cliente_id === oldClient.id) {
+                                        order.cliente_id = serverClient.cliente_id;
+                                    }
+                                });
+                            }
+                        });
+                        // Save updated orders back to storage
+                        OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', this.state.unsyncedOrders);
+                    }
                     
                     this.state.unsyncedClientes = [];
                     OfflineStore.setItem(this.getDbPrefix() + 'unsynced_clientes', []);
