@@ -29,11 +29,23 @@ def sincronizar_clientes(
 
     try:
         for cliente_in in payload.clientes:
+            from sqlalchemy import or_
             cliente_existente = db.scalar(
-                select(Cliente).where(Cliente.uuid_dispositivo == cliente_in.uuid_dispositivo)
+                select(Cliente).where(
+                    or_(
+                        Cliente.uuid_dispositivo == cliente_in.uuid_dispositivo,
+                        Cliente.codigo_pdv == cliente_in.codigo_pdv
+                    )
+                )
             )
 
             if cliente_existente is not None:
+                # If we matched by codigo_pdv but uuid_dispositivo was null, we could update it.
+                # But simply returning the existing client_id is enough for frontend mapping!
+                if not cliente_existente.uuid_dispositivo and cliente_in.uuid_dispositivo:
+                    cliente_existente.uuid_dispositivo = cliente_in.uuid_dispositivo
+                    db.add(cliente_existente)
+                    db.flush()
                 total_duplicados += 1
                 clientes_respuesta.append(
                     ClienteSyncItemOut(
