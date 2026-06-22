@@ -17,6 +17,8 @@ class Cliente(Base):
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     encargado: Mapped[str | None] = mapped_column(String(120), nullable=True)
     direccion: Mapped[str] = mapped_column(String(250), nullable=False)
+    municipio: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    referencia: Mapped[str | None] = mapped_column(String(250), nullable=True)
     latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     frecuencia: Mapped[str] = mapped_column(String(50), nullable=False)

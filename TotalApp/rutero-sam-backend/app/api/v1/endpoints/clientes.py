@@ -63,6 +63,8 @@ def sincronizar_clientes(
                 nombre=cliente_in.nombre,
                 encargado=cliente_in.encargado,
                 direccion=cliente_in.direccion,
+                municipio=cliente_in.municipio,
+                referencia=cliente_in.referencia,
                 latitud=cliente_in.latitud,
                 longitud=cliente_in.longitud,
                 frecuencia=cliente_in.frecuencia,

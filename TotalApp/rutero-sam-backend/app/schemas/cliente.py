@@ -7,6 +7,8 @@ class ClienteSyncIn(BaseModel):
     nombre: str = Field(min_length=1, max_length=150)
     encargado: str | None = Field(default=None, max_length=120)
     direccion: str = Field(min_length=1, max_length=250)
+    municipio: str | None = Field(default=None, max_length=150)
+    referencia: str | None = Field(default=None, max_length=250)
     latitud: float | None = None
     longitud: float | None = None
     frecuencia: str = Field(min_length=1, max_length=50)
@@ -26,6 +28,8 @@ class ClienteOut(BaseModel):
     nombre: str
     encargado: str | None
     direccion: str
+    municipio: str | None
+    referencia: str | None
     latitud: float | None
     longitud: float | None
     frecuencia: str
