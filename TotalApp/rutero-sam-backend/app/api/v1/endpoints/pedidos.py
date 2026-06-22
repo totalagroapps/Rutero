@@ -278,3 +278,33 @@ def generar_pdf_estatico(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generando pedido PDF: {str(exc)}",
         )
+
+from fastapi import APIRouter
+from app.db.session import SessionLocal
+from app.models.pedido import Pedido
+from sqlalchemy.exc import ExceptionContext
+
+@router.get("/test-error")
+def test_error():
+    db = SessionLocal()
+    try:
+        from datetime import datetime, timezone
+        pedido = Pedido(
+            uuid_dispositivo="test-1234-error",
+            cliente_id=None,
+            vendedor_id=1,
+            latitud_captura=0.0,
+            longitud_captura=0.0,
+            fecha_hora=datetime.now(timezone.utc),
+            total=100.0,
+            tipo_cliente="directo",
+            estado_sincronizacion="PENDIENTE"
+        )
+        db.add(pedido)
+        db.commit()
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+    finally:
+        db.close()
