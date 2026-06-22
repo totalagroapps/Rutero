@@ -60,6 +60,23 @@ const App = {
         // 1. Load config settings from localStorage
         this.loadSettings();
 
+        // Restore active visit state if any
+        try {
+            const savedVisit = localStorage.getItem('rutero_active_visit');
+            const savedCart = localStorage.getItem('rutero_cart');
+            if (savedVisit && savedVisit !== 'null') {
+                this.state.activeVisit = JSON.parse(savedVisit);
+                this.state.cart = savedCart ? JSON.parse(savedCart) : {};
+                // We will navigate to it after other async init finishes
+                setTimeout(() => {
+                    if (this.state.activeVisit) {
+                        this.renderVisitView();
+                        this.navigateToView('visita');
+                    }
+                }, 800);
+            }
+        } catch(e) { console.error("Error restoring visit state", e); }
+
         // 2. Initialize router tabs
         this.initRouter();
 
@@ -927,6 +944,7 @@ const App = {
 
         this.state.activeVisit = client;
         this.state.cart = {};
+        this.saveVisitState();
 
         document.getElementById('visit-client-name').innerText = client.nombre;
         document.getElementById('visit-client-code').innerText = client.codigo_pdv;
@@ -1170,6 +1188,7 @@ const App = {
         this.showToast(`Visita registrada.`);
         this.state.activeVisit = null;
         this.state.cart = {};
+        this.saveVisitState();
 
         this.navigateToView('ruta');
         this.renderRutaView();
@@ -1487,6 +1506,7 @@ const App = {
             if (confirm("¿Seguro que deseas salir del registro de visita?")) {
                 this.state.activeVisit = null;
                 this.state.cart = {};
+                this.saveVisitState();
                 this.navigateToView('ruta');
             }
         });

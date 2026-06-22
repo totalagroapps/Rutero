@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'sam-rutero-cache-v16';
+﻿const CACHE_NAME = 'sam-rutero-cache-v18';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
   '/js/map.js',
   '/js/modals.js',
   '/js/app.js',
+  '/js/pedido_pdf.js',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
