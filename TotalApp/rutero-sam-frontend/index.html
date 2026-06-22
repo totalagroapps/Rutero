@@ -564,34 +564,16 @@
                         <input type="number" id="new-client-secuencia" min="1" required placeholder="1">
                     </div>
 
-                    <!-- GPS Coordinates capture box -->
-                    <div class="gps-capture-card" style="background: #f8f9fa; border: 1px dashed rgba(0,0,0,0.12); border-radius: var(--border-radius-md); padding: 16px; margin: 16px 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <span style="font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="map-pin" style="color: var(--primary-color); width: 16px; height: 16px;"></i> Ubicación Geográfica (GPS)
-                            </span>
-                            <span id="gps-capture-badge" class="status-badge critical" style="font-size: 0.65rem; padding: 2px 8px; border-radius: 20px;">Sin ubicar</span>
-                        </div>
-                        
-                        <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 0.7rem; color: var(--text-secondary);">Latitud</label>
-                                <input type="text" id="new-client-lat" readonly placeholder="No capturada" style="background: #e9ecef; font-size: 0.8rem; padding: 8px;">
-                            </div>
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 0.7rem; color: var(--text-secondary);">Longitud</label>
-                                <input type="text" id="new-client-lng" readonly placeholder="No capturada" style="background: #e9ecef; font-size: 0.8rem; padding: 8px;">
-                            </div>
-                        </div>
+                                        <!-- Nuevos campos en lugar de GPS -->
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label for="new-client-municipio">Municipio de Colombia *</label>
+                        <input type="text" id="new-client-municipio" required placeholder="Ej. Bogotá, D.C." list="municipios-colombia" autocomplete="off">
+                        <datalist id="municipios-colombia"></datalist>
+                    </div>
 
-                        <button type="button" id="btn-capture-gps" class="btn btn-secondary btn-block btn-sm" onclick="App.captureClientGps()">
-                            <i data-lucide="locate"></i> Capturar Ubicación Actual
-                        </button>
-
-                        <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
-                            <label style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px; display: block;">O ajustar en Mapa</label>
-                            <div id="new-client-picker-map" style="height: 180px; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.12); z-index: 1;"></div>
-                        </div>
+                    <div class="form-group">
+                        <label for="new-client-referencia">Referencia / Punto de referencia</label>
+                        <input type="text" id="new-client-referencia" placeholder="Ej. Frente al parque principal, puerta azul">
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 16px;">
@@ -1275,6 +1257,7 @@
     <script src="js/despacho.js"></script>
     <script src="js/informes.js"></script>
     <script src="js/pedido_pdf.js"></script>
+    <script src="js/municipios.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

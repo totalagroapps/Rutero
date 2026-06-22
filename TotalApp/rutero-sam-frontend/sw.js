@@ -1,9 +1,10 @@
-﻿const CACHE_NAME = 'sam-rutero-cache-v23';
+﻿const CACHE_NAME = 'sam-rutero-cache-v24';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/css/styles.css',
   '/js/offline-store.js',
+  '/js/municipios.js',
   '/js/api.js',
   '/js/map.js',
   '/js/modals.js',

@@ -554,46 +554,7 @@ const App = {
     },
 
     // Capture device coordinates using native browser GPS
-    captureClientGps() {
-        const badge = document.getElementById('gps-capture-badge');
-        badge.className = 'status-badge pending';
-        badge.innerText = 'Obteniendo…';
-        this.showToast("Solicitando ubicación GPS...");
 
-        const setCoords = (lat, lng) => {
-            document.getElementById('new-client-lat').value = lat.toFixed(6);
-            document.getElementById('new-client-lng').value = lng.toFixed(6);
-            badge.className = 'status-badge dispatched';
-            badge.innerText = 'Ubicación Capturada ✓';
-            this.showToast("Coordenadas GPS capturadas.");
-        };
-
-        if (!navigator.geolocation) {
-            this.showToast("Tu navegador no soporta GPS.", true);
-            badge.className = 'status-badge critical';
-            badge.innerText = 'No soportado';
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                setCoords(pos.coords.latitude, pos.coords.longitude);
-            },
-            (err) => {
-                console.warn("GPS error:", err);
-                badge.className = 'status-badge critical';
-                badge.innerText = 'Sin permiso';
-                if (err.code === 1) {
-                    this.showToast("Permiso de ubicación denegado. Activa el GPS en el navegador.", true);
-                } else if (err.code === 2) {
-                    this.showToast("No se pudo determinar la ubicación. Intenta al aire libre.", true);
-                } else {
-                    this.showToast("GPS agotado. Intenta de nuevo.", true);
-                }
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    },
 
     // Handle new client save
     async handleSaveCliente(e) {
@@ -605,8 +566,7 @@ const App = {
         const codigo = document.getElementById('new-client-codigo').value.trim();
         const frecuencia = document.getElementById('new-client-frecuencia').value;
         const secuencia = document.getElementById('new-client-secuencia').value;
-        const lat = document.getElementById('new-client-lat').value;
-        const lng = document.getElementById('new-client-lng').value;
+
 
         if (!nombre || !direccion || !codigo) {
             this.showToast("Por favor completa los campos obligatorios.", true);
@@ -625,14 +585,19 @@ const App = {
             return;
         }
 
+        const municipio = document.getElementById('new-client-municipio').value.trim();
+        const referencia = document.getElementById('new-client-referencia').value.trim();
+        
         const newClient = {
             uuid_dispositivo: this.generateUUID(),
             codigo_pdv: codigo,
             nombre: nombre,
             encargado: encargado || null,
             direccion: direccion,
-            latitud: parseFloat(lat),
-            longitud: parseFloat(lng),
+            municipio: municipio,
+            referencia: referencia || null,
+            latitud: null,
+            longitud: null,
             frecuencia: frecuencia,
             secuencia_ruta: parseInt(secuencia, 10),
             activo: true
