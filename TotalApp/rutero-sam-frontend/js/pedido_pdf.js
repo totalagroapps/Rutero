@@ -90,14 +90,14 @@ const PedidoPdf = {
         this.productos.forEach(p => {
             const tr = document.createElement('tr');
             tr.id = 'pdf-row-' + p.id;
-            tr.innerHTML = 
-                <td><input type="text" class="sam-input" placeholder="Cód" value="" oninput="PedidoPdf.updateRow('', 'codigo', this.value)"></td>
-                <td><input type="text" class="sam-input" placeholder="Descripción" value="" oninput="PedidoPdf.updateRow('', 'descripcion', this.value)"></td>
-                <td><input type="number" class="sam-input" value="" min="1" oninput="PedidoPdf.updateRow('', 'cantidad', this.value)"></td>
-                <td><input type="number" class="sam-input" value="" min="0" oninput="PedidoPdf.updateRow('', 'precio_unitario', this.value)"></td>
-                <td class="row-subtotal">$\</td>
-                <td><button type="button" class="sam-btn btn-secondary" style="padding:5px; background:var(--danger-color); color:white;" onclick="PedidoPdf.removeRow('')">X</button></td>
-            ;
+            tr.innerHTML = `
+                <td><input type="text" class="sam-input" placeholder="Cód" value="${p.codigo}" oninput="PedidoPdf.updateRow('${p.id}', 'codigo', this.value)"></td>
+                <td><input type="text" class="sam-input" placeholder="Descripción" value="${p.descripcion}" oninput="PedidoPdf.updateRow('${p.id}', 'descripcion', this.value)"></td>
+                <td><input type="number" class="sam-input" value="${p.cantidad}" min="1" oninput="PedidoPdf.updateRow('${p.id}', 'cantidad', this.value)"></td>
+                <td><input type="number" class="sam-input" value="${p.precio_unitario}" min="0" oninput="PedidoPdf.updateRow('${p.id}', 'precio_unitario', this.value)"></td>
+                <td class="row-subtotal">$${p.subtotal.toLocaleString()}</td>
+                <td><button type="button" class="sam-btn btn-secondary" style="padding:5px; background:var(--danger-color); color:white;" onclick="PedidoPdf.removeRow('${p.id}')">X</button></td>
+            `;
             tbody.appendChild(tr);
         });
         this.calculateTotals();

@@ -731,7 +731,7 @@ const App = {
         try {
             // 1. Sync any pending offline clients FIRST
             if (this.state.unsyncedClientes && this.state.unsyncedClientes.length > 0) {
-                this.showToast(Sincronizando  comercio(s)...);
+                this.showToast(`Sincronizando ${this.state.unsyncedClientes.length} comercio(s)...`);
                 const syncResult = await ApiClient.syncClientes(this.state.unsyncedClientes);
                 
                 if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
@@ -762,7 +762,7 @@ const App = {
 
             // 1.5 Sync any pending offline orders
             if (this.state.unsyncedOrders.length > 0) {
-                this.showToast(Sincronizando  pedido(s)...);
+                this.showToast(`Sincronizando ${this.state.unsyncedOrders.length} pedido(s)...`);
                 const syncResult = await ApiClient.syncPedidos(this.state.unsyncedOrders);
                 
                 if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
