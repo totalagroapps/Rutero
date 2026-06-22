@@ -1214,6 +1214,23 @@ const App = {
         this.syncWithBackend();
     },
 
+    openOrderModal(order) {
+        let details = 'Sin detalles';
+        if (order.detalles && order.detalles.length > 0) {
+            details = order.detalles.map(d => `${d.cantidad}x ${d.codigo || 'Prod'} - $${(d.precio_unitario * d.cantidad).toLocaleString()}`).join('\n');
+        } else if (order.productos) {
+            // Offline format
+            details = order.productos.map(d => `${d.cantidad}x ${d.codigo || 'Prod'} - $${(d.subtotal).toLocaleString()}`).join('\n');
+        }
+        
+        alert(`Pedido: #PED-${order.id || 'NUEVO'}
+Estado: ${order.estado_sincronizacion}
+Total: $${(order.total || 0).toLocaleString()}
+
+Detalles:
+${details}`);
+    },
+
     // Vendedor Pedidos list view
     async renderPedidosHistoryList() {
         const container = document.getElementById('pedidos-list-container');
