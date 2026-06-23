@@ -2024,7 +2024,7 @@ ${details}`);
                 fecha_estimada_entrega: null
             };
 
-            const response = await fetch(API_URL + '/pedidos/generar_pdf', {
+            const response = await fetch(API.baseURL + '/pedidos/generar_pdf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
