@@ -967,9 +967,9 @@ const App = {
             let prod = this.state.catalogo.find(p => p.id === parseInt(pId, 10));
             if (!prod) continue;
 
-            const precioActual = this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor !== null 
-                                ? parseFloat(prod.precio_distribuidor) 
-                                : parseFloat(prod.precio_directo);
+            const precioActual = (this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor != null) 
+                                ? (parseFloat(prod.precio_distribuidor) || 0)
+                                : (parseFloat(prod.precio_directo) || 0);
 
             let subtotal = qty * precioActual;
             total += subtotal;
@@ -1029,9 +1029,9 @@ const App = {
 
         filtered.forEach(prod => {
             const qty = this.state.cart[prod.id] || 0;
-            const precioActual = this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor !== null 
-                                ? parseFloat(prod.precio_distribuidor) 
-                                : parseFloat(prod.precio_directo);
+            const precioActual = (this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor != null) 
+                                ? (parseFloat(prod.precio_distribuidor) || 0)
+                                : (parseFloat(prod.precio_directo) || 0);
 
             const item = document.createElement('div');
             item.className = 'product-card';
@@ -1085,9 +1085,9 @@ const App = {
             const qty = this.state.cart[prodId];
             if (prod) {
                 totalItems += qty;
-                const precioActual = this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor !== null 
-                                ? parseFloat(prod.precio_distribuidor) 
-                                : parseFloat(prod.precio_directo);
+                const precioActual = (this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor != null) 
+                                ? (parseFloat(prod.precio_distribuidor) || 0)
+                                : (parseFloat(prod.precio_directo) || 0);
                 totalAmount += qty * precioActual;
             }
         });
@@ -1129,9 +1129,9 @@ const App = {
                 const prod = this.state.catalogo.find(p => p.id === parseInt(prodId, 10));
                 const qty = this.state.cart[prodId];
                 if (prod) {
-                    const precioActual = this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor !== null 
-                                ? parseFloat(prod.precio_distribuidor) 
-                                : parseFloat(prod.precio_directo);
+                    const precioActual = (this.state.tipoCliente === 'distribuidor' && prod.precio_distribuidor != null) 
+                                ? (parseFloat(prod.precio_distribuidor) || 0)
+                                : (parseFloat(prod.precio_directo) || 0);
                     total += qty * precioActual;
                     details.push({
                         producto_id: prod.id,
