@@ -555,7 +555,14 @@ const App = {
             return;
         }
 
-        const finalCodigo = codigo || ('PDV-' + Date.now().toString().slice(-6));
+        const municipioField = document.getElementById('new-client-municipio');
+        const municipioName = municipioField ? municipioField.value.trim() : '';
+        let prefix = 'PDV';
+        if (municipioName) {
+            prefix = municipioName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z]/g, "").substring(0, 3).toUpperCase();
+            if (prefix.length < 3) prefix = 'PDV';
+        }
+        const finalCodigo = codigo || (prefix + '-' + Math.floor(1000 + Math.random() * 9000).toString());
 
         if (!lat || !lng) {
             this.showToast("Por favor captura las coordenadas GPS antes de guardar.", true);
