@@ -575,6 +575,7 @@ const App = {
         const newClient = {
             id: tempId,
             uuid_dispositivo: this.generateUUID(),
+            vendedor_id: this.state.vendedor ? this.state.vendedor.id : (this.state.user ? this.state.user.vendedor_id : 1),
             codigo_pdv: codigo,
             nombre: nombre,
             encargado: encargado || null,
