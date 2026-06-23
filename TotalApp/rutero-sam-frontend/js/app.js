@@ -1982,8 +1982,8 @@ ${details}`);
             const productosPdf = sourceProducts.map(d => {
                 const prod = this.state.catalogo.find(p => p.id === d.producto_id);
                 return {
-                    codigo: prod ? prod.codigo : d.producto_id.toString(),
-                    descripcion: prod ? prod.descripcion : 'Producto ID ' + d.producto_id,
+                    codigo: prod ? prod.sku : d.producto_id.toString(),
+                    descripcion: prod ? prod.nombre : 'Producto ID ' + d.producto_id,
                     cantidad: d.cantidad,
                     precio_unitario: d.precio_unitario,
                     subtotal: d.subtotal || (d.cantidad * d.precio_unitario)
@@ -2017,7 +2017,11 @@ ${details}`);
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) throw new Error("Error en el servidor");
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("ERROR 422 PAYLOAD VALIDATION:", JSON.stringify(errorData, null, 2));
+                throw new Error("Error en el servidor: " + JSON.stringify(errorData));
+            }
             
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
