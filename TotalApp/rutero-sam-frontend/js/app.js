@@ -2015,7 +2015,7 @@ ${details}`);
             const headers = { 'Content-Type': 'application/json' };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            const response = await fetch(API.baseURL + '/pedidos/generar_pdf', {
+            const response = await fetch(ApiClient.baseUrl + '/api/v1/pedidos/generar_pdf', {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify(payload)
