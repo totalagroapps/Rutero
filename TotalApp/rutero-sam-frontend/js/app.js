@@ -1998,7 +1998,7 @@ ${details}`);
                 nombre_cliente: client.nombre,
                 nit_cedula: client.codigo_pdv,
                 direccion: client.direccion,
-                ciudad: client.municipio || 'Ciudad',
+                ciudad: client.municipio || '',
                 telefono: client.telefono || '',
                 correo: client.correo || '',
                 productos: productosPdf,
