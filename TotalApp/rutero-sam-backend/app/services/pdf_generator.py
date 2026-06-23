@@ -94,7 +94,7 @@ def generar_pdf_pedido(datos_pedido: dict) -> io.BytesIO:
 
     ]
 
-    header_table = Table(header_data, colWidths=[45*mm, 65*mm, 60*mm])
+    header_table = Table(header_data, colWidths=[70*mm, 55*mm, 55*mm])
 
     header_table.setStyle(TableStyle([
 
@@ -164,7 +164,7 @@ def generar_pdf_pedido(datos_pedido: dict) -> io.BytesIO:
 
     elements.append(Paragraph("<b>PRODUCTOS</b>", bold_style))
 
-    prod_header = ["CÃ³digo", "DescripciÃ³n", "Cant", "V.Unitario", "Subtotal"]
+    prod_header = ["Código", "Descripción", "Cant", "V.Unitario", "Subtotal"]
 
     prod_data = [prod_header]
 
