@@ -173,7 +173,6 @@ const App = {
 
         // Trigger hooks based on view opened
         if (viewName === 'ruta') {
-            MapController.init('map');
             this.renderRutaView();
         } else if (viewName === 'catalogo') {
             this.renderCatalog();
@@ -196,9 +195,6 @@ const App = {
         } else if (viewName === 'admin-clientes') {
             AdminController.renderAdminClientes();
         } else if (viewName === 'admin-rutas') {
-            AdminMapController.init('admin-map');
-            AdminController.populateAdminRouteVendedoresSelector();
-            AdminController.loadAdminRouteOnMap();
         } else if (viewName === 'admin-productos') {
             AdminController.renderAdminProductos();
         } else if (viewName === 'admin-pedidos') {
@@ -546,9 +542,7 @@ const App = {
         
         // Initialize Picker Map
         setTimeout(() => {
-            PickerMapController.init('new-client-picker-map', 'new-client-lat', 'new-client-lng', 'new-client-direccion');
             if (this.state.userCoords && this.state.userCoords.lat) {
-                PickerMapController.setCenter('new-client-picker-map', this.state.userCoords.lat, this.state.userCoords.lng);
             }
         }, 300);
     },
@@ -878,9 +872,6 @@ const App = {
             `;
             clientsContainer.appendChild(card);
         });
-
-        MapController.renderRoute(this.state.clientes, this.state.visitStates);
-        MapController.setUserLocation(this.state.userCoords.lat, this.state.userCoords.lng);
         this.refreshIcons();
     },
 
@@ -1447,9 +1438,7 @@ ${details}`);
                 const sheet = document.getElementById('route-list-container');
                 sheet.classList.toggle('expanded');
                 setTimeout(() => {
-                    if(typeof MapController !== 'undefined' && MapController.invalidateSize) {
-                        MapController.invalidateSize();
-                    }
+
                 }, 300);
             };
 
@@ -1615,11 +1604,9 @@ ${details}`);
                                             badge.innerText = 'Ubicación de Mapa ✓';
                                         }
                                         if (typeof PickerMapController !== 'undefined') {
-                                            PickerMapController.setCenter('new-client-picker-map', place.lat, place.lon);
                                         }
                                     } else if (inputId === 'admin-cliente-direccion') {
                                         if (typeof PickerMapController !== 'undefined') {
-                                            PickerMapController.setCenter('admin-cliente-picker-map', place.lat, place.lon);
                                         }
                                     }
                                     
@@ -1743,7 +1730,6 @@ ${details}`);
                     lat: pos.coords.latitude,
                     lng: pos.coords.longitude
                 };
-                MapController.setUserLocation(this.state.userCoords.lat, this.state.userCoords.lng);
                 if (this.state.clientes.length > 0 && document.getElementById('view-ruta').classList.contains('active')) {
                     this.renderRutaView();
                 }
@@ -1991,15 +1977,16 @@ ${details}`);
         try {
             this.showToast("Generando comprobante PDF...", false);
             
-            // Reconstruir productos con descripciones
-            const productosPdf = order.detalles.map(d => {
+            // Reconstruir productos con descripciones (soporta formato offline 'productos' y online 'detalles')
+            const sourceProducts = order.detalles || order.productos || [];
+            const productosPdf = sourceProducts.map(d => {
                 const prod = this.state.catalogo.find(p => p.id === d.producto_id);
                 return {
                     codigo: prod ? prod.codigo : d.producto_id.toString(),
                     descripcion: prod ? prod.descripcion : 'Producto ID ' + d.producto_id,
                     cantidad: d.cantidad,
                     precio_unitario: d.precio_unitario,
-                    subtotal: d.cantidad * d.precio_unitario
+                    subtotal: d.subtotal || (d.cantidad * d.precio_unitario)
                 };
             });
 

@@ -197,23 +197,13 @@
 
         <!-- VIEW: VENDEDOR RUTA (MAPA Y LISTA DE VISITAS) -->
         <section id="view-ruta" class="app-view">
-            <!-- Fullscreen Map Container -->
-            <div id="route-map-container" class="map-fullscreen">
-                <div id="map" style="width: 100%; height: 100%;"></div>
-            </div>
-
-            <!-- Bottom Sheet for Client List -->
-            <div id="route-list-container" class="bottom-sheet">
-                <div class="drag-handle-container" id="bottom-sheet-handle">
-                    <div class="drag-handle"></div>
-                </div>
+            <!-- Lista de Clientes -->
+            <div id="route-list-container" class="container" style="padding-top: 20px;">
                 
                 <div class="route-header">
                     <span>Lista de Clientes</span>
                     <div style="display: flex; gap: 8px;">
-                        <button id="btn-optimize" class="btn btn-secondary btn-sm" title="Reordenar ruta por distancia">
-                            <i data-lucide="sparkles"></i> Optimizar
-                        </button>
+
                         <button id="btn-add-client-trigger" class="btn btn-primary btn-sm" title="Agregar nuevo cliente" onclick="App.openAddClientView()">
                             <i data-lucide="plus"></i> Nuevo
                         </button>
@@ -225,7 +215,6 @@
                         <!-- Loaded dynamically -->
                     </div>
                 </div>
-            </div>
         </section>
 
         <!-- VIEW: VENDEDOR CATALOGO -->
@@ -389,7 +378,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
         </section>
 
         <!-- VIEW: VENDEDOR PEDIDOS HISTORIAL -->
@@ -999,21 +987,7 @@
             </div>
         </section>
 
-        <!-- VIEW: ADMIN RUTAS / RECORRIDOS EN MAPA -->
-        <section id="view-admin-rutas" class="app-view">
-            <div class="summary-card" style="padding: 16px; margin-bottom: 12px;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="admin-select-vendedor-ruta" style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary);">Ver Recorrido de Vendedor</label>
-                    <select id="admin-select-vendedor-ruta" onchange="App.loadAdminRouteOnMap()" style="width: 100%; padding: 10px; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.1); margin-top: 6px; font-family: var(--font-body); font-size: 0.85rem;">
-                        <!-- Loaded dynamically -->
-                    </select>
-                </div>
-            </div>
-            
-            <div id="admin-route-map-container" class="map-wrapper active" style="height: 380px; border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-main); border: 1px solid rgba(0,0,0,0.05); margin-bottom: 16px;">
-                <div id="admin-map" style="height: 100%; width: 100%;"></div>
-            </div>
-        </section>
+
 
         <!-- VIEW: ADMIN PRODUCTOS (CATÁLOGO) -->
         <section id="view-admin-productos" class="app-view">
@@ -1164,10 +1138,7 @@
             <i data-lucide="store"></i>
             <span>Comercios</span>
         </button>
-        <button class="nav-item role-admin-only" data-view="admin-rutas">
-            <i data-lucide="map"></i>
-            <span>Recorridos</span>
-        </button>
+
         <button class="nav-item role-admin-only" data-view="admin-productos">
             <i data-lucide="package"></i>
             <span>Catálogo</span>
@@ -1232,8 +1203,7 @@
     </div>
 
     <!-- Leaflet Map JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
+        
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -1247,8 +1217,7 @@
     <!-- App Scripts -->
     <script src="js/offline-store.js"></script>
     <script src="js/api.js"></script>
-    <script src="js/map.js"></script>
-    <script src="js/pdf.js"></script>
+        <script src="js/pdf.js"></script>
     <script src="js/modals.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/despacho.js"></script>
