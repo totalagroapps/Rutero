@@ -73,3 +73,9 @@ class StatsOut(BaseModel):
     pedidos_pendientes: int
     pedidos_despachados: int
     pedidos_cancelados: int
+
+
+class PurgeDataIn(BaseModel):
+    purge_pedidos: bool = False
+    purge_visitas: bool = False
+    purge_clientes: bool = False

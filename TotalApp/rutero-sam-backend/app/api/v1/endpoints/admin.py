@@ -529,3 +529,35 @@ def reordenar_clientes(payload: ClienteReorderBatchIn, db: DbSession):
     db.commit()
     return {"message": "Ruta reordenada con éxito"}
 
+
+from sqlalchemy import delete
+from app.models.pedido import Pedido
+from app.models.detalle_pedido import DetallePedido
+from app.models.visita import Visita
+from app.models.cliente import Cliente
+from app.schemas.admin import PurgeDataIn
+
+@router.post("/purge-data", status_code=status.HTTP_200_OK)
+def purge_test_data(payload: PurgeDataIn, db: DbSession):
+    try:
+        if payload.purge_pedidos:
+            db.execute(delete(DetallePedido))
+            db.execute(delete(Pedido))
+        
+        if payload.purge_visitas:
+            db.execute(delete(Visita))
+            
+        if payload.purge_clientes:
+            # Foreign keys to pedidos and visitas must be cleared first.
+            # Even if purge_pedidos or purge_visitas wasn't checked, 
+            # if we are purging clients, we MUST purge all orders and visits to avoid FK violations.
+            db.execute(delete(DetallePedido))
+            db.execute(delete(Pedido))
+            db.execute(delete(Visita))
+            db.execute(delete(Cliente))
+            
+        db.commit()
+        return {"message": "Datos eliminados exitosamente"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
