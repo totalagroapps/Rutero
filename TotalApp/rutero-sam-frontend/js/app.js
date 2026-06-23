@@ -2037,16 +2037,38 @@ ${details}`);
             }
             
             const blob = await response.blob();
+            const filename = "Comprobante_" + client.nombre.replace(/\s+/g, '_') + ".pdf";
+            const file = new File([blob], filename, { type: 'application/pdf' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: 'Comprobante de Pedido',
+                        text: 'Adjunto el comprobante del pedido.',
+                        files: [file]
+                    });
+                    this.showToast("PDF compartido correctamente.");
+                    return;
+                } catch (err) {
+                    console.log("Share cancelled or failed", err);
+                }
+            }
+
+            // Fallback for PC and browsers without share support
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "Comprobante_" + client.nombre.replace(/\s+/g, '_') + ".pdf";
+            a.download = filename;
+            a.target = "_blank";
             document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
             
-            this.showToast("PDF descargado correctamente.");
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            }, 1000);
+            
+            this.showToast("PDF procesado.");
         } catch(e) {
             console.error(e);
             this.showToast("Error al generar PDF: " + e.message, true);
