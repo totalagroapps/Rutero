@@ -571,7 +571,9 @@ const App = {
         const municipio = document.getElementById('new-client-municipio').value.trim();
         const referencia = document.getElementById('new-client-referencia').value.trim();
         
+        const tempId = -Math.floor(Date.now() / 1000);
         const newClient = {
+            id: tempId,
             uuid_dispositivo: this.generateUUID(),
             codigo_pdv: codigo,
             nombre: nombre,
@@ -665,6 +667,17 @@ const App = {
         
         const isOnline = await ApiClient.checkConnection();
         this.updateConnectionUI(isOnline);
+
+        // Cleanup bad data before syncing
+        if (this.state.unsyncedOrders && this.state.unsyncedOrders.length > 0) {
+            const originalLength = this.state.unsyncedOrders.length;
+            this.state.unsyncedOrders = this.state.unsyncedOrders.filter(o => 
+                o.cliente_id != null && o.detalles && o.detalles.length > 0
+            );
+            if (this.state.unsyncedOrders.length !== originalLength) {
+                OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', this.state.unsyncedOrders);
+            }
+        }
 
         if (!isOnline) {
             console.log("Offline mode: Skipping server data fetch.");
@@ -1127,6 +1140,17 @@ const App = {
                     });
                 }
             });
+
+            if (details.length === 0) {
+                // If they visited but didn't buy anything, don't create an order
+                this.state.visitStates[client.codigo_pdv] = 'visited';
+                OfflineStore.setItem(this.getDbPrefix() + 'visit_states', this.state.visitStates);
+                this.showToast(`Visita registrada sin venta.`);
+                this.state.activeVisit = null;
+                this.saveVisitState();
+                this.navigateToView('ruta');
+                return;
+            }
 
             // Status PENDIENTE initially, to allow client to accept it
             const newOrder = {

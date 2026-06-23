@@ -122,7 +122,9 @@ const ApiClient = {
             });
 
             if (!response.ok) {
-                throw new Error(`Error HTTP al sincronizar pedidos: ${response.status}`);
+                const errData = await response.json();
+                console.error("422 DETAILS:", errData);
+                throw new Error(`Error HTTP al sincronizar pedidos: ${response.status}. Detalles: ${JSON.stringify(errData)}`);
             }
 
             return await response.json();
