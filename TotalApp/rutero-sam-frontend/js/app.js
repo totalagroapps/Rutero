@@ -550,11 +550,12 @@ const App = {
         const frecuencia = document.getElementById('new-client-frecuencia').value;
         const secuencia = document.getElementById('new-client-secuencia').value;
 
-
-        if (!nombre || !direccion || !codigo) {
+        if (!nombre || !direccion) {
             this.showToast("Por favor completa los campos obligatorios.", true);
             return;
         }
+
+        const finalCodigo = codigo || ('PDV-' + Date.now().toString().slice(-6));
 
         if (!lat || !lng) {
             this.showToast("Por favor captura las coordenadas GPS antes de guardar.", true);
@@ -576,7 +577,7 @@ const App = {
             id: tempId,
             uuid_dispositivo: this.generateUUID(),
             vendedor_id: this.state.vendedor ? this.state.vendedor.id : (this.state.user ? this.state.user.vendedor_id : 1),
-            codigo_pdv: codigo,
+            codigo_pdv: finalCodigo,
             nombre: nombre,
             encargado: encargado || null,
             direccion: direccion,
