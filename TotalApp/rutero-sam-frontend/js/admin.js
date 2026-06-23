@@ -768,4 +768,54 @@ AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-us
         }
     },
 
+    openPurgeModal() {
+        const modal = document.getElementById('modal-purge-data');
+        const input = document.getElementById('purge-confirmation-input');
+        const btn = document.getElementById('btn-confirm-purge');
+        
+        input.value = '';
+        btn.disabled = true;
+        
+        input.oninput = (e) => {
+            btn.disabled = e.target.value !== 'PURGAR';
+        };
+        
+        modal.style.display = 'flex';
+    },
+    
+    closePurgeModal() {
+        document.getElementById('modal-purge-data').style.display = 'none';
+    },
+    
+    async executePurge() {
+        const purgePedidos = document.getElementById('chk-purge-pedidos').checked;
+        const purgeVisitas = document.getElementById('chk-purge-visitas').checked;
+        const purgeClientes = document.getElementById('chk-purge-clientes').checked;
+        
+        if (!purgePedidos && !purgeVisitas && !purgeClientes) {
+            App.showToast("Selecciona al menos una opción para purgar.", true);
+            return;
+        }
+
+        const btn = document.getElementById('btn-confirm-purge');
+        btn.disabled = true;
+        btn.innerText = "Purgando...";
+
+        try {
+            await ApiClient.purgeData({
+                purge_pedidos: purgePedidos,
+                purge_visitas: purgeVisitas,
+                purge_clientes: purgeClientes
+            });
+            App.showToast("¡Datos de prueba purgados exitosamente!");
+            AdminController.closePurgeModal();
+            AdminController.renderAdminDashboard(); // Refresh stats
+        } catch (err) {
+            App.showToast(err.message, true);
+        } finally {
+            btn.innerText = "Eliminar Datos";
+        }
+    }
 };
+
+window.Admin = AdminController;

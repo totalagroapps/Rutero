@@ -902,6 +902,39 @@
                     <canvas id="chart-pedidos-estado"></canvas>
                 </div>
             </div>
+
+            <!-- ZONA DE PELIGRO -->
+            <div class="section-title" style="margin-top: 32px;">
+                <h2 style="color: #ef4444;"><i data-lucide="alert-triangle" style="width: 18px; vertical-align: text-bottom;"></i> Zona de Peligro (Limpieza de Piloto)</h2>
+            </div>
+            
+            <div class="summary-card" style="padding: 16px; border: 1px solid #fee2e2; background-color: #fef2f2;">
+                <p style="margin-bottom: 16px; color: #b91c1c; font-size: 0.9rem;">
+                    Selecciona los datos de prueba que deseas eliminar definitivamente de la base de datos. ¡Esta acción NO se puede deshacer!
+                </p>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; color: #7f1d1d; cursor: pointer;">
+                        <input type="checkbox" id="chk-purge-pedidos" style="width: 16px; height: 16px; accent-color: #ef4444;">
+                        Borrar todos los Pedidos (y sus detalles)
+                    </label>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; color: #7f1d1d; cursor: pointer;">
+                        <input type="checkbox" id="chk-purge-visitas" style="width: 16px; height: 16px; accent-color: #ef4444;">
+                        Borrar todas las Visitas registradas
+                    </label>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; gap: 8px; color: #7f1d1d; cursor: pointer;">
+                        <input type="checkbox" id="chk-purge-clientes" style="width: 16px; height: 16px; accent-color: #ef4444;">
+                        Borrar todos los Clientes de la Base de Datos
+                    </label>
+                </div>
+                
+                <button class="btn btn-primary" style="background-color: #ef4444; width: 100%; font-weight: bold;" onclick="Admin.openPurgeModal()">
+                    <i data-lucide="trash-2"></i> Ejecutar Limpieza
+                </button>
+            </div>
         </section>
 
         <!-- VIEW: ADMIN VENDEDORES -->
@@ -1198,6 +1231,28 @@
 
     <!-- Leaflet Map JS -->
         
+    <!-- MODAL: ZONA DE PELIGRO (PURGE) -->
+    <div id="modal-purge-data" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 400px; border-top: 4px solid #ef4444;">
+            <div class="modal-header">
+                <h2>⚠️ Confirmar Limpieza</h2>
+                <button class="icon-btn" onclick="Admin.closePurgeModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #4b5563; font-size: 0.95rem; margin-bottom: 16px;">
+                    Estás a punto de eliminar datos permanentemente. Para confirmar, escribe la palabra <strong style="color: #ef4444;">PURGAR</strong> en mayúsculas a continuación:
+                </p>
+                <div class="form-group">
+                    <input type="text" id="purge-confirmation-input" placeholder="Escribe PURGAR" autocomplete="off" style="text-align: center; font-weight: bold; letter-spacing: 2px;">
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 12px; margin-top: 16px;">
+                <button class="btn btn-secondary" onclick="Admin.closePurgeModal()" style="flex: 1;">Cancelar</button>
+                <button id="btn-confirm-purge" class="btn btn-primary" onclick="Admin.executePurge()" style="flex: 1; background-color: #ef4444;" disabled>Eliminar Datos</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

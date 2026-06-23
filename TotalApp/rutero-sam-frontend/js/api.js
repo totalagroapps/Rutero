@@ -525,5 +525,27 @@ const ApiClient = {
             throw new Error(errData.detail || "Error subiendo vendedores");
         }
         return await response.json();
+    },
+
+    async purgeData(options) {
+        try {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/purge-data`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(options)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(`Error HTTP: ${response.status}. Detalles: ${JSON.stringify(errData)}`);
+            }
+
+            return await response.json();
+        } catch (e) {
+            console.error("Error purging data", e);
+            throw e;
+        }
     }
 };
