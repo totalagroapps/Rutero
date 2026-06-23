@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'sam-rutero-cache-v41';
+﻿const CACHE_NAME = 'sam-rutero-cache-v42';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
