@@ -1107,21 +1107,48 @@ const MunicipiosColombia = [
 ];
 
 // Función para poblar el datalist
-function poblarMunicipios() {
-    const datalist = document.getElementById('municipios-colombia');
-    if (!datalist) return;
-    
-    // Solo poblar si está vacío
-    if (datalist.options.length === 0) {
-        const fragment = document.createDocumentFragment();
-        MunicipiosColombia.forEach(municipio => {
-            const option = document.createElement('option');
-            option.value = municipio;
-            fragment.appendChild(option);
-        });
-        datalist.appendChild(fragment);
-    }
+function setupMunicipioAutocomplete() {
+    const inputEl = document.getElementById('new-client-municipio');
+    const suggestionsEl = document.getElementById('municipios-suggestions');
+    if (!inputEl || !suggestionsEl) return;
+
+    inputEl.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        suggestionsEl.innerHTML = '';
+        
+        if (query.length < 2) {
+            suggestionsEl.classList.add('hidden');
+            return;
+        }
+
+        const matches = MunicipiosColombia.filter(m => 
+            m.toLowerCase().includes(query) || 
+            m.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").includes(query)
+        ).slice(0, 15);
+
+        if (matches.length > 0) {
+            matches.forEach(m => {
+                const li = document.createElement('li');
+                li.innerText = m;
+                li.addEventListener('click', () => {
+                    inputEl.value = m;
+                    suggestionsEl.classList.add('hidden');
+                    suggestionsEl.innerHTML = '';
+                });
+                suggestionsEl.appendChild(li);
+            });
+            suggestionsEl.classList.remove('hidden');
+        } else {
+            suggestionsEl.classList.add('hidden');
+        }
+    });
+
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+        if (e.target !== inputEl && e.target !== suggestionsEl) {
+            suggestionsEl.classList.add('hidden');
+        }
+    });
 }
 
-// Ejecutar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', poblarMunicipios);
+document.addEventListener('DOMContentLoaded', setupMunicipioAutocomplete);
