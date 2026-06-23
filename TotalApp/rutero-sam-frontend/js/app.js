@@ -2011,13 +2011,9 @@ ${details}`);
                 fecha_estimada_entrega: null
             };
 
-            const token = localStorage.getItem('sam_token');
-            const headers = { 'Content-Type': 'application/json' };
-            if (token) headers['Authorization'] = `Bearer ${token}`;
-
-            const response = await fetch(ApiClient.baseUrl + '/api/v1/pedidos/generar_pdf', {
+            const response = await ApiClient.fetchWithAuth(ApiClient.baseUrl + '/api/v1/pedidos/generar_pdf', {
                 method: 'POST',
-                headers: headers,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
