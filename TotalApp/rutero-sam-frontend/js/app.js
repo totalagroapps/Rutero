@@ -46,7 +46,95 @@ const App = {
     
     refreshIcons() {
         if (this._iconTimeout) clearTimeout(this._iconTimeout);
-        this._iconTimeout = 
+        this._iconTimeout = setTimeout(() => {
+            if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+            }
+        }, 50);
+    },
+
+    // Initialize application
+    async init() {
+        console.log("Starting TotalAPP / Rutero SAM...");
+        
+        // 1. Load config settings from localStorage
+        this.loadSettings();
+
+        // Restore active visit state if any
+        try {
+            const savedVisit = localStorage.getItem('rutero_active_visit');
+            const savedCart = localStorage.getItem('rutero_cart');
+            if (savedVisit && savedVisit !== 'null') {
+                this.state.activeVisit = JSON.parse(savedVisit);
+                this.state.cart = savedCart ? JSON.parse(savedCart) : {};
+                // We will navigate to it after other async init finishes
+                setTimeout(() => {
+                    if (this.state.activeVisit) {
+                        this.renderVisitView();
+                        this.navigateToView('visita');
+                    }
+                }, 800);
+            }
+        } catch(e) { console.error("Error restoring visit state", e); }
+
+        // 2. Initialize router tabs
+        this.initRouter();
+
+        // 3. Initialize signature canvas
+        this.initSignatureCanvas();
+
+        // 4. Initialize search filters
+        this.initFilters();
+
+        // 5. Connect connection status monitor
+        this.initConnectionMonitor();
+
+        // 6. Set initial coordinates
+        this.updateUserCoords();
+
+        // 7. Check login state
+        await this.checkLoginState();
+
+        if (this.state.isLoggedIn && this.state.activeRole === 'vendedor') {
+            await this.loadCachedData();
+            await this.syncWithBackend();
+        }
+
+        // Populate client dropdown for login
+        this.populateClientLoginSelector();
+
+        // 8. Register UI events
+        this.initUIEventListeners();
+
+        // Initialize Lucide icons
+        this.refreshIcons();
+    },
+
+    // Check if user was already logged in
+    async checkLoginState() {
+        const savedRole = localStorage.getItem('sam_active_role');
+        const savedIsLoggedIn = localStorage.getItem('sam_is_logged_in') === 'true';
+        const savedUser = localStorage.getItem('sam_logged_user');
+        const savedVendedor = localStorage.getItem('sam_vendedor');
+
+        if (savedIsLoggedIn && savedRole && savedUser) {
+            this.state.activeRole = savedRole;
+            this.state.isLoggedIn = true;
+            this.state.user = JSON.parse(savedUser);
+            
+            if (savedRole === 'vendedor' && savedVendedor) {
+                this.state.vendedor = JSON.parse(savedVendedor);
+            } else if (savedRole === 'vendedor') {
+                this.state.vendedor = { 
+                    id: this.state.user.vendedor_id || 1, 
+                    nombre: 'Vendedor ' + this.state.user.username, 
+                    zona: 'Zona Asignada' 
+                };
+            }
+            
+            this.showAppMain();
+        } else {
+            this.logout({ silent: true });
         }
     },
 
@@ -442,16 +530,171 @@ const App = {
         document.getElementById('new-client-name').value = '';
         document.getElementById('new-client-encargado').value = '';
         document.getElementById('new-client-direccion').value = '';
-        
-        
-
-        // GPS status reset
-        
+        document.getElementById('new-client-municipio').value = '';
+        document.getElementById('new-client-referencia').value = '';
 
         this.navigateToView('agregar-cliente');
+    },
+
+    // Capture device coordinates using native browser GPS
+
+
+    // Handle new client save
+    async handleSaveCliente(e) {
+        e.preventDefault();
+
+        const nombre = document.getElementById('new-client-name').value.trim();
+        const encargado = document.getElementById('new-client-encargado').value.trim();
+        const direccion = document.getElementById('new-client-direccion').value.trim();
+        const codigo = document.getElementById('new-client-codigo').value.trim();
+        const frecuencia = document.getElementById('new-client-frecuencia').value;
+        const secuencia = document.getElementById('new-client-secuencia').value;
+
+
+        if (!nombre || !direccion || !codigo) {
+            this.showToast("Por favor completa los campos obligatorios.", true);
+            return;
+        }
+
+        if (!lat || !lng) {
+            this.showToast("Por favor captura las coordenadas GPS antes de guardar.", true);
+            return;
+        }
+
+        // Check if code already exists
+        const codeExists = this.state.clientes.some(c => c.codigo_pdv.toLowerCase() === codigo.toLowerCase());
+        if (codeExists) {
+            this.showToast("El código PDV ya está registrado.", true);
+            return;
+        }
+
+        const municipio = document.getElementById('new-client-municipio').value.trim();
+        const referencia = document.getElementById('new-client-referencia').value.trim();
         
-        // Initialize Picker Map
+        const newClient = {
+            uuid_dispositivo: this.generateUUID(),
+            codigo_pdv: codigo,
+            nombre: nombre,
+            encargado: encargado || null,
+            direccion: direccion,
+            municipio: municipio,
+            referencia: referencia || null,
+            latitud: null,
+            longitud: null,
+            frecuencia: frecuencia,
+            secuencia_ruta: parseInt(secuencia, 10),
+            activo: true
+        };
+
+        // Save local
+        this.state.clientes.push(newClient);
+        OfflineStore.setItem(this.getDbPrefix() + 'clientes', this.state.clientes);
+
+        this.state.unsyncedClientes.push(newClient);
+        OfflineStore.setItem(this.getDbPrefix() + 'unsynced_clientes', this.state.unsyncedClientes);
+
+        this.updateSyncBadge();
+        this.showToast("Comercio registrado localmente.");
+
+        // Redirect back and refresh route list/map
+        this.navigateToView('ruta');
+        this.renderRutaView();
+
+        // Populate logins
+        this.populateClientLoginSelector();
+
+        // Trigger sync background
+        this.syncWithBackend();
+    },
+
+    // Update settings view
+    loadSettings() {
+        const usernameEl = document.getElementById('settings-username');
+        const roleEl = document.getElementById('settings-role');
+        if (usernameEl) {
+            usernameEl.innerText = this.state.user ? this.state.user.username : 'Invitado';
+        }
+        if (roleEl) {
+            roleEl.innerText = this.state.activeRole || 'Ninguno';
+        }
+    },
+
+    // Prefix helper
+    getDbPrefix() {
+        const uId = this.state.user ? this.state.user.id : 'anon';
+        const vId = this.state.vendedor ? this.state.vendedor.id : 'anon';
+        return `u${uId}_v${vId}_`;
+    },
+
+    // Load state from local storage cache
+    async loadCachedData() {
+        const prefix = this.getDbPrefix();
+
+        const cachedClientes = await OfflineStore.getItem(prefix + 'clientes');
+        if (cachedClientes) {
+            this.state.clientes = cachedClientes;
+        }
+
+        const cachedCatalogo = await OfflineStore.getItem(prefix + 'catalogo');
+        if (cachedCatalogo) {
+            this.state.catalogo = cachedCatalogo;
+        }
+
+        const cachedVisitStates = await OfflineStore.getItem(prefix + 'visit_states');
+        if (cachedVisitStates) {
+            this.state.visitStates = cachedVisitStates;
+        }
+
+        const cachedUnsynced = await OfflineStore.getItem(prefix + 'unsynced_orders');
+        if (cachedUnsynced) {
+            this.state.unsyncedOrders = cachedUnsynced;
+        }
+
+        const cachedUnsyncedClientes = await OfflineStore.getItem(prefix + 'unsynced_clientes');
+        if (cachedUnsyncedClientes) {
+            this.state.unsyncedClientes = cachedUnsyncedClientes;
+        }
         
+        this.updateSyncBadge();
+    },
+
+    // Synchronize latest state with FastAPI backend
+    async syncWithBackend() {
+        const syncBtn = document.getElementById('sync-button');
+        syncBtn.classList.add('spinning');
+        
+        const isOnline = await ApiClient.checkConnection();
+        this.updateConnectionUI(isOnline);
+
+        if (!isOnline) {
+            console.log("Offline mode: Skipping server data fetch.");
+            syncBtn.classList.remove('spinning');
+            
+            if (this.state.clientes.length === 0) {
+                this.loadMockDataFallback();
+            }
+            return;
+        }
+
+        try {
+            // 1. Sync any pending offline clients FIRST
+            if (this.state.unsyncedClientes && this.state.unsyncedClientes.length > 0) {
+                this.showToast(`Sincronizando ${this.state.unsyncedClientes.length} comercio(s)...`);
+                const syncResult = await ApiClient.syncClientes(this.state.unsyncedClientes);
+                
+                if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
+                    // Update offline orders that reference these temporary client IDs
+                    if (syncResult.clientes && this.state.unsyncedOrders.length > 0) {
+                        syncResult.clientes.forEach(serverClient => {
+                            // Find the old client to get its temporary ID
+                            const oldClient = this.state.unsyncedClientes.find(c => c.uuid_dispositivo === serverClient.uuid_dispositivo);
+                            if (oldClient) {
+                                // Update any unsynced order that used this temporary ID
+                                this.state.unsyncedOrders.forEach(order => {
+                                    if (order.cliente_id === oldClient.id) {
+                                        order.cliente_id = serverClient.cliente_id;
+                                    }
+                                });
                             }
                         });
                         // Save updated orders back to storage
@@ -1183,7 +1426,32 @@ ${details}`);
             const toggleSheet = () => {
                 const sheet = document.getElementById('route-list-container');
                 sheet.classList.toggle('expanded');
+                setTimeout(() => {
+
+                }, 300);
+            };
+
+            bottomSheetHandle.addEventListener('click', toggleSheet);
+
+            let touchStartY = 0;
+            const routeHeader = document.querySelector('#route-list-container .route-header');
+            const handleTouchStart = (e) => {
+                touchStartY = e.changedTouches[0].screenY;
+            };
+            const handleTouchEnd = (e) => {
+                const touchEndY = e.changedTouches[0].screenY;
+                const deltaY = touchEndY - touchStartY;
+                const sheet = document.getElementById('route-list-container');
+                const isExpanded = sheet.classList.contains('expanded');
                 
+                if (deltaY < -30 && !isExpanded) {
+                    toggleSheet();
+                } else if (deltaY > 30 && isExpanded) {
+                    toggleSheet();
+                }
+            };
+
+            bottomSheetHandle.addEventListener('touchstart', handleTouchStart, { passive: true });
             bottomSheetHandle.addEventListener('touchend', handleTouchEnd, { passive: true });
             
             // Allow dragging from the header area too!
@@ -1354,7 +1622,8 @@ ${details}`);
             });
         };
 
-        // Auto complete setup was removed
+        // Setup for Vendedor "Add Client" view
+        // setupAutocomplete map refs removed
         
         // Setup for Admin "Add Client" modal
         setupAutocomplete('admin-cliente-direccion', 'admin-cliente-lat', 'admin-cliente-lng', 'admin-cliente-direccion-suggestions');
@@ -1584,7 +1853,22 @@ ${details}`);
         this.refreshIcons();
         toast.classList.add('show');
 
-        this.toastTimeout = 
+        this.toastTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 4000);
+    },
+
+    // PWA Service worker registration
+    registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => {
+                        console.log('[PWA] Service Worker registrado. Scope:', reg.scope);
+                    })
+                    .catch((err) => {
+                        console.error('[PWA] Error en Service Worker:', err);
+                    });
             });
         }
 
