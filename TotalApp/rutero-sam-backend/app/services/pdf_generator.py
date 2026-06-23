@@ -2,7 +2,7 @@
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 
@@ -37,10 +37,11 @@ def generar_pdf_pedido(datos_pedido: dict) -> io.BytesIO:
             Paragraph(f"<font size='14'><b>COMPROBANTE DE PEDIDO</b></font><br/><br/><b>N°:</b> {datos_pedido.get('numero_pedido')}<br/><b>Fecha:</b> {datos_pedido.get('fecha_hora')}<br/><b>Vendedor:</b> {datos_pedido.get('vendedor_nombre', 'Vendedor')}", normal_style)
         ]
     ]
-    header_table = Table(header_data, colWidths=[100*mm, 70*mm])
+    header_table = Table(header_data, colWidths=[45*mm, 65*mm, 60*mm])
     header_table.setStyle(TableStyle([
         ('ALIGN', (0,0), (0,0), 'LEFT'),
-        ('ALIGN', (1,0), (1,0), 'RIGHT'),
+        ('ALIGN', (1,0), (1,0), 'LEFT'),
+        ('ALIGN', (2,0), (2,0), 'RIGHT'),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('BOTTOMPADDING', (0,0), (-1,-1), 10),
     ]))
@@ -79,8 +80,8 @@ def generar_pdf_pedido(datos_pedido: dict) -> io.BytesIO:
             p.get("codigo", ""),
             p.get("descripcion", ""),
             str(p.get("cantidad", 0)),
-            f"",
-            f""
+            f"${float(p.get('precio_unitario', 0)):,.0f}",
+            f"${float(p.get('subtotal', 0)):,.0f}"
         ]
         prod_data.append(row)
 
@@ -100,10 +101,10 @@ def generar_pdf_pedido(datos_pedido: dict) -> io.BytesIO:
 
     # TOTALES
     totales_data = [
-        ["Subtotal:", f""],
-        ["Descuento:", f""],
-        ["IVA:", f""],
-        ["TOTAL A PAGAR:", f""]
+        ["Subtotal:", f"${float(datos_pedido.get('subtotal', 0)):,.0f}"],
+        ["Descuento:", f"${float(datos_pedido.get('descuento', 0)):,.0f}"],
+        ["IVA:", f"${float(datos_pedido.get('iva', 0)):,.0f}"],
+        ["TOTAL A PAGAR:", f"${float(datos_pedido.get('total', 0)):,.0f}"]
     ]
     totales_table = Table(totales_data, colWidths=[130*mm, 40*mm])
     totales_table.setStyle(TableStyle([
