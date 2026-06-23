@@ -546,7 +546,6 @@ const App = {
         const nombre = document.getElementById('new-client-name').value.trim();
         const encargado = document.getElementById('new-client-encargado').value.trim();
         const direccion = document.getElementById('new-client-direccion').value.trim();
-        const codigo = document.getElementById('new-client-codigo').value.trim();
         const frecuencia = document.getElementById('new-client-frecuencia').value;
         const secuencia = document.getElementById('new-client-secuencia').value;
 
@@ -562,7 +561,7 @@ const App = {
             prefix = municipioName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z]/g, "").substring(0, 3).toUpperCase();
             if (prefix.length < 3) prefix = 'PDV';
         }
-        const finalCodigo = codigo || (prefix + '-' + Math.floor(1000 + Math.random() * 9000).toString());
+        const finalCodigo = prefix + '-' + Math.floor(1000 + Math.random() * 9000).toString();
 
         if (!lat || !lng) {
             this.showToast("Por favor captura las coordenadas GPS antes de guardar.", true);
