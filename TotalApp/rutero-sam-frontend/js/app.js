@@ -590,12 +590,24 @@ const App = {
 
         // Save local
         this.state.clientes.push(newClient);
-        OfflineStore.setItem(this.getDbPrefix() + 'clientes', this.state.clientes);
+        
 
-        this.state.unsyncedClientes.push(newClient);
-        OfflineStore.setItem(this.getDbPrefix() + 'unsynced_clientes', this.state.unsyncedClientes);
+        
+        try {
+            this.showToast("Enviando cliente al servidor...", false);
+            const syncResult = await ApiClient.syncClientes([newClient]);
+            if (syncResult && syncResult.total_insertados > 0) {
+                this.showToast("Cliente agregado exitosamente.");
+            } else {
+                this.showToast("Error al registrar cliente.", true);
+                return;
+            }
+        } catch (error) {
+            console.error("Error enviando cliente:", error);
+            this.showToast("No hay conexión para registrar clientes nuevos.", true);
+            return;
+        }
 
-        this.updateSyncBadge();
         this.showToast("Comercio registrado localmente.");
 
         // Redirect back and refresh route list/map
@@ -630,32 +642,7 @@ const App = {
 
     // Load state from local storage cache
     async loadCachedData() {
-        const prefix = this.getDbPrefix();
-
-        const cachedClientes = await OfflineStore.getItem(prefix + 'clientes');
-        if (cachedClientes) {
-            this.state.clientes = cachedClientes;
-        }
-
-        const cachedCatalogo = await OfflineStore.getItem(prefix + 'catalogo');
-        if (cachedCatalogo) {
-            this.state.catalogo = cachedCatalogo;
-        }
-
-        const cachedVisitStates = await OfflineStore.getItem(prefix + 'visit_states');
-        if (cachedVisitStates) {
-            this.state.visitStates = cachedVisitStates;
-        }
-
-        const cachedUnsynced = await OfflineStore.getItem(prefix + 'unsynced_orders');
-        if (cachedUnsynced) {
-            this.state.unsyncedOrders = cachedUnsynced;
-        }
-
-        const cachedUnsyncedClientes = await OfflineStore.getItem(prefix + 'unsynced_clientes');
-        if (cachedUnsyncedClientes) {
-            this.state.unsyncedClientes = cachedUnsyncedClientes;
-        }
+        // Carga inicial (OfflineStore removido)
         
         this.updateSyncBadge();
     },
@@ -675,7 +662,7 @@ const App = {
                 o.cliente_id != null && o.detalles && o.detalles.length > 0
             );
             if (this.state.unsyncedOrders.length !== originalLength) {
-                OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', this.state.unsyncedOrders);
+                
             }
         }
 
@@ -711,11 +698,11 @@ const App = {
                             }
                         });
                         // Save updated orders back to storage
-                        OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', this.state.unsyncedOrders);
+                        
                     }
                     
                     this.state.unsyncedClientes = [];
-                    OfflineStore.setItem(this.getDbPrefix() + 'unsynced_clientes', []);
+                    
                     this.updateSyncBadge();
                     this.showToast("Comercios sincronizados con éxito!");
                 }
@@ -728,7 +715,7 @@ const App = {
                 
                 if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
                     this.state.unsyncedOrders = [];
-                    OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', []);
+                    
                     this.updateSyncBadge();
                     this.showToast("Pedidos sincronizados con éxito!");
                 }
@@ -738,11 +725,11 @@ const App = {
             const vid = (this.state.user && this.state.user.vendedor_id) ? this.state.user.vendedor_id : 1;
             const vendedorRuta = await ApiClient.getRuta(vid);
             this.state.clientes = vendedorRuta;
-            OfflineStore.setItem(this.getDbPrefix() + 'clientes', vendedorRuta);
+            
 
             const catalogoData = await ApiClient.getCatalogo();
             this.state.catalogo = catalogoData;
-            OfflineStore.setItem(this.getDbPrefix() + 'catalogo', catalogoData);
+            
 
             // Record last successful sync timestamp
             localStorage.setItem('sam_last_sync', new Date().toLocaleString());
@@ -915,9 +902,7 @@ const App = {
     },
 
     saveVisitState() {
-        OfflineStore.setItem(this.getDbPrefix() + 'active_visit', this.state.activeVisit);
-        OfflineStore.setItem(this.getDbPrefix() + 'cart', this.state.cart);
-        OfflineStore.setItem(this.getDbPrefix() + 'tipo_cliente', this.state.tipoCliente);
+        // Funcionalidad offline eliminada
     },
 
     startVisit(clientId) {
@@ -1144,7 +1129,7 @@ const App = {
             if (details.length === 0) {
                 // If they visited but didn't buy anything, don't create an order
                 this.state.visitStates[client.codigo_pdv] = 'visited';
-                OfflineStore.setItem(this.getDbPrefix() + 'visit_states', this.state.visitStates);
+                
                 this.showToast(`Visita registrada sin venta.`);
                 this.state.activeVisit = null;
                 this.saveVisitState();
@@ -1165,20 +1150,28 @@ const App = {
                 detalles: details
             };
 
-            this.state.unsyncedOrders.push(newOrder);
-            OfflineStore.setItem(this.getDbPrefix() + 'unsynced_orders', this.state.unsyncedOrders);
-            this.updateSyncBadge();
             
-            // Trigger PDF Download
-            if (confirm("Venta registrada exitosamente.\n¿Desea descargar el comprobante PDF del pedido?")) {
-                this.downloadReceiptPdf(newOrder, client);
+            try {
+                this.showToast("Enviando pedido al servidor...", false);
+                const syncResult = await ApiClient.syncPedidos([newOrder]);
+                if (syncResult && syncResult.total_insertados > 0) {
+                    this.showToast(`Pedido registrado exitosamente.`);
+                    
+                    if (confirm("Venta registrada exitosamente. ¿Desea descargar el comprobante PDF del pedido?")) {
+                        this.downloadReceiptPdf(newOrder, client);
+                    }
+                } else {
+                    this.showToast("Error al registrar pedido. Revisa tu conexión a internet.", true);
+                }
+            } catch (error) {
+                console.error("Error sending order:", error);
+                this.showToast("No se pudo registrar el pedido. Verifica tu conexión.", true);
+                return; // Do not clear visit state if it failed
             }
         }
 
         this.state.visitStates[client.codigo_pdv] = status;
-        OfflineStore.setItem(this.getDbPrefix() + 'visit_states', this.state.visitStates);
 
-        this.showToast(`Visita registrada.`);
         this.state.activeVisit = null;
         this.state.cart = {};
         this.saveVisitState();
@@ -1186,7 +1179,6 @@ const App = {
         this.navigateToView('ruta');
         this.renderRutaView();
 
-        this.syncWithBackend();
     },
 
     openOrderModal(order) {
@@ -1688,8 +1680,8 @@ ${details}`);
     },
 
     initConnectionMonitor() {
-        window.addEventListener('online', () => this.syncWithBackend());
-        window.addEventListener('offline', () => this.updateConnectionUI(false));
+        
+        
 
         setInterval(async () => {
             const isOnline = await ApiClient.checkConnection();
@@ -1697,37 +1689,10 @@ ${details}`);
         }, 12000);
     },
 
-    updateConnectionUI(isOnline) {
-        const ind = document.getElementById('connection-status');
-        const text = ind.querySelector('.status-text');
-        
-        if (isOnline) {
-            ind.className = 'status-indicator online';
-            text.innerText = 'Online';
-        } else {
-            ind.className = 'status-indicator offline';
-            text.innerText = 'Offline';
-        }
-    },
+    updateConnectionUI(isOnline) { },
 
     updateSyncBadge() {
-        const orderCount = this.state.unsyncedOrders ? this.state.unsyncedOrders.length : 0;
-        const clientCount = this.state.unsyncedClientes ? this.state.unsyncedClientes.length : 0;
-        const count = orderCount + clientCount;
-        const badge = document.getElementById('sync-badge');
-        const syncBtn = document.getElementById('sync-button');
-
-        if (count > 0) {
-            badge.innerText = count.toString();
-            badge.classList.add('show');
-        } else {
-            badge.classList.remove('show');
-        }
-
-        const lastSync = localStorage.getItem('sam_last_sync');
-        if (syncBtn) {
-            syncBtn.title = lastSync ? `Última sincronización: ${lastSync} | Pendientes: ${count}` : `Sincronizar (Pendientes: ${count})`;
-        }
+        // Offline functionality removed
     },
 
     // Request and update the user's real location via browser GPS
@@ -1799,7 +1764,7 @@ ${details}`);
         }
 
         this.state.clientes = optimized;
-        OfflineStore.setItem(this.getDbPrefix() + 'clientes', this.state.clientes);
+        
         this.renderRutaView();
 
         // Sync reordered route with backend
