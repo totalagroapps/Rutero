@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select, func
 
@@ -535,12 +535,15 @@ from app.models.pedido import Pedido
 from app.models.detalle_pedido import DetallePedido
 from app.models.visita import Visita
 from app.models.cliente import Cliente
+from app.models.devolucion import Devolucion
+from app.models.cartera import FacturaPendiente, Abono
 from app.schemas.admin import PurgeDataIn
 
 @router.post("/purge-data", status_code=status.HTTP_200_OK)
 def purge_test_data(payload: PurgeDataIn, db: DbSession):
     try:
         if payload.purge_pedidos:
+            db.execute(delete(Devolucion))
             db.execute(delete(DetallePedido))
             db.execute(delete(Pedido))
         
@@ -549,8 +552,9 @@ def purge_test_data(payload: PurgeDataIn, db: DbSession):
             
         if payload.purge_clientes:
             # Foreign keys to pedidos and visitas must be cleared first.
-            # Even if purge_pedidos or purge_visitas wasn't checked, 
-            # if we are purging clients, we MUST purge all orders and visits to avoid FK violations.
+            db.execute(delete(Abono))
+            db.execute(delete(FacturaPendiente))
+            db.execute(delete(Devolucion))
             db.execute(delete(DetallePedido))
             db.execute(delete(Pedido))
             db.execute(delete(Visita))
