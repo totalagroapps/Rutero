@@ -518,14 +518,6 @@ const App = {
         const seq = this.state.clientes.length + 1;
         document.getElementById('new-client-secuencia').value = seq;
 
-        // Auto code generation PDV00X
-        const maxId = this.state.clientes.reduce((max, c) => {
-            const num = parseInt(c.codigo_pdv.replace(/\D/g, ''), 10);
-            return isNaN(num) ? max : Math.max(max, num);
-        }, 0);
-        const nextCode = `PDV${String(maxId + 1).padStart(3, '0')}`;
-        document.getElementById('new-client-codigo').value = nextCode;
-
         // Reset inputs
         document.getElementById('new-client-name').value = '';
         document.getElementById('new-client-encargado').value = '';
