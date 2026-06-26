@@ -2039,6 +2039,55 @@ ${details}`);
             this.showToast("Error al generar PDF: " + e.message, true);
         }
     }
+,
+
+    async handleUploadVendedoresExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        this.showToast("Subiendo vendedores...");
+        try {
+            await ApiClient.uploadAdminVendedoresExcel(file);
+            this.showToast("Vendedores importados exitosamente");
+            if (window.AdminController) {
+                AdminController.renderAdminVendedores();
+            }
+        } catch (e) {
+            this.showToast("Error subiendo vendedores: " + e.message, true);
+        }
+        event.target.value = '';
+    },
+
+    async importClientesExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        this.showToast("Subiendo clientes...");
+        try {
+            await ApiClient.uploadAdminClientesExcel(file);
+            this.showToast("Clientes importados exitosamente");
+            if (window.AdminController) {
+                AdminController.renderAdminClientes();
+            }
+        } catch (e) {
+            this.showToast("Error subiendo clientes: " + e.message, true);
+        }
+        event.target.value = '';
+    },
+
+    async handleUploadProductosExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        this.showToast("Subiendo productos...");
+        try {
+            await ApiClient.uploadAdminProductosExcel(file);
+            this.showToast("Productos importados exitosamente");
+            if (window.AdminController) {
+                AdminController.renderAdminProductos();
+            }
+        } catch (e) {
+            this.showToast("Error subiendo productos: " + e.message, true);
+        }
+        event.target.value = '';
+    }
 };
 
 // Global hook for events

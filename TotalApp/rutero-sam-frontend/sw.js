@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'sam-rutero-cache-v49';
+const CACHE_NAME = 'sam-rutero-cache-v50';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -81,7 +81,7 @@ self.addEventListener('fetch', (event) => {
   // Default Strategy for App Shell assets: Network-first so visual fixes are not trapped in old PWA cache.
   event.respondWith(
     fetch(event.request).then((response) => {
-        if (!response || response.status !== 200) {
+        if (!response || response.status !== 200 || !event.request.url.startsWith('http')) {
           return response;
         }
         
