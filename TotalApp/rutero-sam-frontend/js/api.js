@@ -616,7 +616,7 @@ const ApiClient = {
             console.error("Error fetching latest tracking:", error);
             throw error;
         }
-    }
+    },
     async getTrackingHistory(vendedorId) {
         try {
             const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/tracking/history/${vendedorId}`);
