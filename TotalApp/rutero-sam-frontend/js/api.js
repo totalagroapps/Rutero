@@ -596,9 +596,11 @@ const ApiClient = {
             const payload = { vendedor_id: vendedorId, puntos: puntos };
             const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/tracking/sync`, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            return response;
+            if (!response.ok) throw new Error("Error sync tracking");
+            return await response.json();
         } catch (error) {
             console.error("Error syncing tracking:", error);
             throw error;
@@ -608,7 +610,8 @@ const ApiClient = {
     async getLatestTracking() {
         try {
             const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/tracking/latest`);
-            return response;
+            if (!response.ok) throw new Error("Error getting tracking");
+            return await response.json();
         } catch (error) {
             console.error("Error fetching latest tracking:", error);
             throw error;
