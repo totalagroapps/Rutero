@@ -2104,7 +2104,7 @@ ${details}`);
             this.showToast("Error subiendo productos: " + e.message, true);
         }
         event.target.value = '';
-    }
+    },
 
     // --- CARTERA LOGIC ---
     renderCarteraView() {

@@ -547,7 +547,7 @@ const ApiClient = {
             console.error("Error purging data", e);
             throw e;
         }
-    }
+    },
 
     async syncAbonos(abonos) {
         if (!abonos || abonos.length === 0) return { total_recibidos: 0, total_insertados: 0, abonos: [] };
