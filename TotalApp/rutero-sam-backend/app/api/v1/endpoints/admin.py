@@ -435,7 +435,9 @@ async def upload_clientes_siigo(db: DbSession, file: UploadFile = File(...)):
                     nombre=nombre,
                     direccion=direccion,
                     encargado=encargado,
-                    activo=activo
+                    activo=activo,
+                    frecuencia="Semanal",
+                    secuencia_ruta=999
                 )
                 db.add(nuevo)
                 count_added += 1
