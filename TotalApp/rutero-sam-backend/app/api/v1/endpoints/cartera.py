@@ -76,3 +76,86 @@ def registrar_abono(payload: AbonoCreate, db: DbSession) -> Abono:
 def listar_abonos_vendedor(vendedor_id: int, db: DbSession) -> List[Abono]:
     stmt = select(Abono).where(Abono.vendedor_id == vendedor_id).order_by(Abono.fecha.desc())
     return list(db.scalars(stmt).all())
+
+from app.schemas.cartera import AbonoSyncBatchIn, AbonoSyncBatchOut, AbonoSyncItemOut
+
+@router.get("/vendedor/{vendedor_id}", response_model=List[FacturaPendienteOut])
+def obtener_cartera_por_vendedor(vendedor_id: int, db: DbSession):
+    # Obtain all active clients for the vendor (or unassigned if we want them to see all, but for cartera let's stick to their clients or all active like in ruta)
+    # Following ruta logic: return all pending invoices for active clients
+    stmt = (
+        select(FacturaPendiente)
+        .join(Cliente)
+        .where(Cliente.activo.is_(True))
+        .where(FacturaPendiente.estado.in_(["VIGENTE", "VENCIDA"]))
+    )
+    facturas = db.scalars(stmt).all()
+    
+    # Update vencidas
+    for f in facturas:
+        if f.fecha_vencimiento < datetime.utcnow() and f.estado == "VIGENTE":
+            f.estado = "VENCIDA"
+            db.commit()
+            
+    return facturas
+
+@router.post("/abonos/sync", response_model=AbonoSyncBatchOut, status_code=status.HTTP_201_CREATED)
+def sincronizar_abonos(payload: AbonoSyncBatchIn, db: DbSession) -> AbonoSyncBatchOut:
+    abonos_respuesta: List[AbonoSyncItemOut] = []
+    total_insertados = 0
+    total_duplicados = 0
+
+    for abono_in in payload.abonos:
+        # Check if already synced
+        existente = db.scalar(select(Abono).where(Abono.uuid_dispositivo == abono_in.uuid_dispositivo))
+        if existente:
+            total_duplicados += 1
+            abonos_respuesta.append(
+                AbonoSyncItemOut(
+                    uuid_dispositivo=abono_in.uuid_dispositivo,
+                    abono_id=existente.id,
+                    estado_sincronizacion="YA_SINCRONIZADO"
+                )
+            )
+            continue
+            
+        factura = db.get(FacturaPendiente, abono_in.factura_id)
+        if not factura:
+            # Factura not found, could be an error or we just skip
+            continue
+            
+        nuevo_abono = Abono(
+            uuid_dispositivo=abono_in.uuid_dispositivo,
+            factura_id=abono_in.factura_id,
+            vendedor_id=abono_in.vendedor_id,
+            monto=abono_in.monto,
+            fecha=abono_in.fecha if abono_in.fecha else datetime.utcnow(),
+            metodo_pago=abono_in.metodo_pago,
+            notas=abono_in.notas
+        )
+        db.add(nuevo_abono)
+        
+        # Deduct from factura
+        factura.saldo_pendiente -= abono_in.monto
+        if factura.saldo_pendiente <= 0:
+            factura.saldo_pendiente = 0
+            factura.estado = "PAGADA"
+            
+        db.flush()
+        
+        total_insertados += 1
+        abonos_respuesta.append(
+            AbonoSyncItemOut(
+                uuid_dispositivo=abono_in.uuid_dispositivo,
+                abono_id=nuevo_abono.id,
+                estado_sincronizacion="SINCRONIZADO"
+            )
+        )
+        
+    db.commit()
+    return AbonoSyncBatchOut(
+        total_recibidos=len(payload.abonos),
+        total_insertados=total_insertados,
+        total_duplicados=total_duplicados,
+        abonos=abonos_respuesta
+    )

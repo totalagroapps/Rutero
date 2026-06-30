@@ -380,12 +380,61 @@ async def upload_cartera_siigo(db: DbSession, file: UploadFile = File(...)):
         # Assuming columns: 'Codigo PDV' or 'NIT', 'Numero', 'Vencimiento', 'Total', 'Saldo'
         
         count_added = 0
+        from datetime import datetime
         for index, row in df.iterrows():
-            # This is a stub for processing. We will refine it later when the user provides the Excel.
-            pass
+            identificacion = str(row.get('NIT', row.get('Identificación', row.get('Identificacion', '')))).strip()
+            sucursal = str(row.get('Sucursal', '')).strip()
+            codigo = f"{identificacion}-{sucursal}" if (sucursal and sucursal.lower() != 'nan') else identificacion
+            
+            if not codigo or codigo.lower() == 'nan':
+                continue
+            
+            cliente = db.scalar(select(Cliente).where(Cliente.codigo_pdv == codigo))
+            if not cliente:
+                continue
+
+            numero_factura = str(row.get('Numero', row.get('Factura', ''))).strip()
+            if not numero_factura or numero_factura.lower() == 'nan':
+                continue
+
+            fecha_emision = pd.to_datetime(row.get('Fecha', row.get('Emision', datetime.utcnow())), errors='coerce')
+            if pd.isna(fecha_emision):
+                fecha_emision = datetime.utcnow()
+            
+            fecha_vencimiento = pd.to_datetime(row.get('Vencimiento', datetime.utcnow()), errors='coerce')
+            if pd.isna(fecha_vencimiento):
+                fecha_vencimiento = fecha_emision
+
+            monto_total = float(row.get('Total', row.get('Monto', 0)))
+            saldo_pendiente = float(row.get('Saldo', row.get('Saldo Pendiente', 0)))
+            
+            if saldo_pendiente <= 0:
+                continue
+
+            estado = "VIGENTE"
+            if fecha_vencimiento < datetime.utcnow():
+                estado = "VENCIDA"
+
+            # Check if invoice exists
+            factura = db.scalar(select(FacturaPendiente).where(FacturaPendiente.numero_factura == numero_factura))
+            if factura:
+                factura.saldo_pendiente = saldo_pendiente
+                factura.estado = estado
+            else:
+                nueva_factura = FacturaPendiente(
+                    cliente_id=cliente.id,
+                    numero_factura=numero_factura,
+                    fecha_emision=fecha_emision,
+                    fecha_vencimiento=fecha_vencimiento,
+                    monto_total=monto_total,
+                    saldo_pendiente=saldo_pendiente,
+                    estado=estado
+                )
+                db.add(nueva_factura)
+                count_added += 1
 
         db.commit()
-        return {"message": "Cartera procesada con Ã©xito", "nuevas_facturas": count_added}
+        return {"message": "Cartera procesada con éxito", "nuevas_facturas": count_added}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

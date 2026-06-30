@@ -37,6 +37,23 @@ class AbonoOut(AbonoBase):
     fecha: datetime
     model_config = ConfigDict(from_attributes=True)
 
+class AbonoSyncIn(AbonoBase):
+    uuid_dispositivo: str
+
+class AbonoSyncBatchIn(BaseModel):
+    abonos: List[AbonoSyncIn]
+
+class AbonoSyncItemOut(BaseModel):
+    uuid_dispositivo: str
+    abono_id: int
+    estado_sincronizacion: str
+
+class AbonoSyncBatchOut(BaseModel):
+    total_recibidos: int
+    total_insertados: int
+    total_duplicados: int
+    abonos: List[AbonoSyncItemOut]
+
 class CarteraClienteOut(BaseModel):
     cliente_id: int
     total_adeudado: Decimal

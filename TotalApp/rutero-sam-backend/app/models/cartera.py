@@ -26,6 +26,7 @@ class Abono(Base):
     __tablename__ = "abonos"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    uuid_dispositivo: Mapped[str | None] = mapped_column(String(80), nullable=True, unique=True, index=True)
     factura_id: Mapped[int] = mapped_column(ForeignKey("facturas_pendientes.id"), nullable=False, index=True)
     vendedor_id: Mapped[int] = mapped_column(ForeignKey("vendedores.id"), nullable=False)
     monto: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
