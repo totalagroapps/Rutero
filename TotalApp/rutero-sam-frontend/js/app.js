@@ -659,7 +659,7 @@ const App = {
         
         const isOnline = await ApiClient.checkConnection();
         this.updateConnectionUI(isOnline);
-        if (this.state.activeRole === 'VENDEDOR') this.startTracking();
+        if (this.state.activeRole === 'vendedor') this.startTracking();
 
         // Cleanup bad data before syncing
         if (this.state.unsyncedOrders && this.state.unsyncedOrders.length > 0) {
@@ -1717,7 +1717,7 @@ ${details}`);
         setInterval(async () => {
             const isOnline = await ApiClient.checkConnection();
             this.updateConnectionUI(isOnline);
-        if (this.state.activeRole === 'VENDEDOR') this.startTracking();
+        if (this.state.activeRole === 'vendedor') this.startTracking();
         }, 12000);
     },
 
@@ -2273,7 +2273,7 @@ ${details}`);
 
     // --- TRACKING LOGIC ---
     startTracking() {
-        if (this.state.activeRole !== 'VENDEDOR') return;
+        if (this.state.activeRole !== 'vendedor') return;
         if (this._trackingInterval) clearInterval(this._trackingInterval);
         
         // Every 3 minutes (180000 ms)
