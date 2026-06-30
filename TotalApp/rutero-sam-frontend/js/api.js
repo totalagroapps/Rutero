@@ -617,4 +617,14 @@ const ApiClient = {
             throw error;
         }
     }
+    async getTrackingHistory(vendedorId) {
+        try {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/tracking/history/${vendedorId}`);
+            if (!response.ok) throw new Error("Error getting tracking history");
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching history:", error);
+            throw error;
+        }
+    },
 };

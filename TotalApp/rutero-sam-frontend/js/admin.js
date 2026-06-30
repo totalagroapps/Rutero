@@ -847,13 +847,26 @@ AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-us
         try {
             const data = await ApiClient.getLatestTracking();
             
+            // Populate select if empty
+            const select = document.getElementById('radar-history-vendedor');
+            if (select && select.options.length <= 1 && data.length > 0) {
+                data.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.vendedor_id;
+                    opt.text = v.nombre;
+                    select.appendChild(opt);
+                });
+            }
+
             let bounds = [];
             data.forEach(vendedor => {
                 const lat = parseFloat(vendedor.latitud);
                 const lng = parseFloat(vendedor.longitud);
                 if (isNaN(lat) || isNaN(lng)) return;
                 
-                const timeAgo = new Date(vendedor.fecha_hora).toLocaleTimeString();
+                // Fix UTC time (append Z)
+                const dateStr = vendedor.fecha_hora.endsWith('Z') ? vendedor.fecha_hora : vendedor.fecha_hora + 'Z';
+                const timeAgo = new Date(dateStr).toLocaleTimeString();
                 const batteryInfo = vendedor.bateria ? `🔋 ${vendedor.bateria}%` : '';
                 
                 const popupContent = `
@@ -883,6 +896,93 @@ AppModals.inject('modal-admin-usuario'); document.getElementById('modal-admin-us
             console.error("Error fetching radar:", e);
             if (!silent) App.showToast("Error cargando radar", true);
         }
+    },
+
+    async loadRadarHistory() {
+        const select = document.getElementById('radar-history-vendedor');
+        const vendedorId = select.value;
+        if (!vendedorId) {
+            App.showToast("Seleccione un vendedor primero", true);
+            return;
+        }
+        
+        App.showToast("Cargando historial...");
+        try {
+            const data = await ApiClient.getTrackingHistory(vendedorId);
+            if (!data || data.length === 0) {
+                App.showToast("No hay recorrido registrado para hoy", true);
+                return;
+            }
+            
+            // Clear map
+            this.clearRadarMap();
+            
+            let latlngs = [];
+            data.forEach(pt => {
+                const lat = parseFloat(pt.latitud);
+                const lng = parseFloat(pt.longitud);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    latlngs.push([lat, lng]);
+                }
+            });
+            
+            if (latlngs.length === 0) return;
+            
+            // Draw Polyline
+            this.radarPolyline = L.polyline(latlngs, {color: '#4f46e5', weight: 4, opacity: 0.7}).addTo(this.radarMap);
+            
+            // Add Start Marker (Green)
+            const firstPt = data[0];
+            const startDate = new Date(firstPt.fecha_hora.endsWith('Z') ? firstPt.fecha_hora : firstPt.fecha_hora + 'Z');
+            const startIcon = L.divIcon({ className: 'custom-icon', html: '<div style="background:#10b981; width:16px; height:16px; border-radius:50%; border:2px solid white;"></div>' });
+            L.marker([firstPt.latitud, firstPt.longitud], {icon: startIcon})
+                .bindPopup(`<strong>Inicio</strong><br>${startDate.toLocaleTimeString()}`)
+                .addTo(this.radarMap);
+                
+            // Add End Marker (Red)
+            const lastPt = data[data.length - 1];
+            const endDate = new Date(lastPt.fecha_hora.endsWith('Z') ? lastPt.fecha_hora : lastPt.fecha_hora + 'Z');
+            const endIcon = L.divIcon({ className: 'custom-icon', html: '<div style="background:#ef4444; width:16px; height:16px; border-radius:50%; border:2px solid white;"></div>' });
+            L.marker([lastPt.latitud, lastPt.longitud], {icon: endIcon})
+                .bindPopup(`<strong>Fin / Actual</strong><br>${endDate.toLocaleTimeString()}`)
+                .addTo(this.radarMap);
+            
+            this.radarMap.fitBounds(this.radarPolyline.getBounds(), { padding: [50, 50] });
+            
+            // Stop auto-refresh while in history mode
+            if (this._radarInterval) clearInterval(this._radarInterval);
+            this.radarHistoryMode = true;
+            
+        } catch (e) {
+            console.error("Error loading history", e);
+            App.showToast("Error cargando historial", true);
+        }
+    },
+    
+    clearRadarMap() {
+        if (this.radarMap) {
+            this.radarMap.eachLayer((layer) => {
+                if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+                    this.radarMap.removeLayer(layer);
+                }
+            });
+        }
+        this.radarMarkers = {};
+        if (this.radarPolyline) this.radarPolyline = null;
+    },
+    
+    async resetRadarToLive() {
+        this.clearRadarMap();
+        this.radarHistoryMode = false;
+        await this.refreshRadarMap(false);
+        
+        // Restart auto refresh
+        if (this._radarInterval) clearInterval(this._radarInterval);
+        this._radarInterval = setInterval(() => {
+            if (document.getElementById('view-admin-radar').classList.contains('active') && !this.radarHistoryMode) {
+                this.refreshRadarMap(true);
+            }
+        }, 30000);
     },
 };
 
