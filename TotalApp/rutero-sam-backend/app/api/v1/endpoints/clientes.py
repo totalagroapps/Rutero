@@ -42,8 +42,17 @@ def sincronizar_clientes(
             if cliente_existente is not None:
                 # If we matched by codigo_pdv but uuid_dispositivo was null, we could update it.
                 # But simply returning the existing client_id is enough for frontend mapping!
+                changed = False
                 if not cliente_existente.uuid_dispositivo and cliente_in.uuid_dispositivo:
                     cliente_existente.uuid_dispositivo = cliente_in.uuid_dispositivo
+                    changed = True
+                
+                # Auto-assign if unassigned
+                if cliente_existente.vendedor_id is None and cliente_in.vendedor_id is not None:
+                    cliente_existente.vendedor_id = cliente_in.vendedor_id
+                    changed = True
+
+                if changed:
                     db.add(cliente_existente)
                     db.flush()
                 total_duplicados += 1

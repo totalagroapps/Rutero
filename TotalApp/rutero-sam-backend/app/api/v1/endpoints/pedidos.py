@@ -77,6 +77,13 @@ def sincronizar_pedidos(
             db.add(pedido)
             db.flush()
 
+            # Auto-asignar cliente al vendedor si no tiene asignado
+            from app.models.cliente import Cliente
+            cliente_db = db.scalar(select(Cliente).where(Cliente.id == pedido.cliente_id))
+            if cliente_db and cliente_db.vendedor_id is None:
+                cliente_db.vendedor_id = pedido.vendedor_id
+                db.add(cliente_db)
+
             # Autogenerar Cartera si es distribuidor
             if pedido_in.tipo_cliente == "distribuidor":
                 from app.models.cartera import FacturaPendiente
