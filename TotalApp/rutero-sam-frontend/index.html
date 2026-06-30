@@ -209,6 +209,11 @@
                         </button>
                     </div>
                 </div>
+                
+                <div style="margin-bottom: 15px; position: relative;">
+                    <i data-lucide="search" style="position: absolute; left: 10px; top: 10px; color: #999; width: 18px; height: 18px;"></i>
+                    <input type="text" id="route-client-search" placeholder="Buscar por nombre o NIT..." onkeyup="App.renderRutaView(this.value)" style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd; border-radius: 8px; font-family: var(--font-body); font-size: 14px;">
+                </div>
 
                 <div class="bottom-sheet-content">
                     <div id="route-clients-list" class="clients-list">

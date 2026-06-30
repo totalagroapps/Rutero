@@ -848,7 +848,7 @@ const App = {
         }
     },
 
-    renderRutaView() {
+    renderRutaView(searchTerm = '') {
         const clientsContainer = document.getElementById('route-clients-list');
         clientsContainer.innerHTML = '';
 
@@ -856,8 +856,21 @@ const App = {
             clientsContainer.innerHTML = '<p class="empty-state-text">No hay clientes cargados.</p>';
             return;
         }
+        
+        const term = searchTerm.toLowerCase().trim();
+        
+        const filteredClientes = term === '' ? this.state.clientes : this.state.clientes.filter(c => {
+            const matchesNombre = c.nombre && c.nombre.toLowerCase().includes(term);
+            const matchesNit = c.codigo_pdv && c.codigo_pdv.toLowerCase().includes(term);
+            return matchesNombre || matchesNit;
+        });
+        
+        if (filteredClientes.length === 0) {
+            clientsContainer.innerHTML = '<p class="empty-state-text">No se encontraron clientes que coincidan con la búsqueda.</p>';
+            return;
+        }
 
-        this.state.clientes.forEach(cliente => {
+        filteredClientes.forEach(cliente => {
             const visitState = this.state.visitStates[cliente.codigo_pdv] || 'pending';
             
             let badgeText = 'Pendiente';
