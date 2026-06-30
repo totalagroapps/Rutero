@@ -4,7 +4,7 @@ const ApiClient = {
     isLocalHost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
     localBaseUrls: ['http://127.0.0.1:8000', 'http://127.0.0.1:8001'],
     productionBaseUrl: 'https://rutero-sam-backend-production.up.railway.app',
-    baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    baseUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !window.Capacitor
         ? 'http://127.0.0.1:8000'
         : 'https://rutero-sam-backend-production.up.railway.app',
     
