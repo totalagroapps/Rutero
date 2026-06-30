@@ -16,6 +16,7 @@ const App = {
         unsyncedClientes: [], // Vendedor new clients registered offline/pending sync
         cartera: [], // Facturas pendientes
         unsyncedAbonos: [], // Abonos offline
+        unsyncedTracking: [], // Puntos de rastreo offline
         gpsSimulated: true,
         userCoords: { lat: 4.7110, lng: -74.0721 }, // Default Bogotá, Colombia
         pedidosListFilter: 'PENDIENTE', // Vendedor orders list filter
@@ -315,6 +316,7 @@ const App = {
     },
 
     backToRoleSelection() {
+        this.stopTracking();
         this.state.activeRole = null;
         document.getElementById('view-login').classList.add('hidden');
         document.getElementById('view-role-selection').classList.remove('hidden');
@@ -493,6 +495,7 @@ const App = {
 
     logout(options = {}) {
         this.state.isLoggedIn = false;
+        this.stopTracking();
         this.state.activeRole = null;
         this.state.user = null;
 
@@ -656,6 +659,7 @@ const App = {
         
         const isOnline = await ApiClient.checkConnection();
         this.updateConnectionUI(isOnline);
+        if (this.state.activeRole === 'VENDEDOR') this.startTracking();
 
         // Cleanup bad data before syncing
         if (this.state.unsyncedOrders && this.state.unsyncedOrders.length > 0) {
@@ -734,6 +738,16 @@ const App = {
                     this.showToast("Recaudos sincronizados con éxito!");
                 }
             }
+
+            // 1.7 Sync tracking
+            if (this.state.unsyncedTracking && this.state.unsyncedTracking.length > 0 && this.state.vendedor) {
+                const syncResult = await ApiClient.syncTracking(this.state.vendedor.id, this.state.unsyncedTracking);
+                if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
+                    this.state.unsyncedTracking = [];
+                    localStorage.setItem(this.getDbPrefix() + 'sam_unsynced_tracking', JSON.stringify([]));
+                }
+            }
+
 
 
             // 2. Fetch fresh routes & catalog
@@ -1703,6 +1717,7 @@ ${details}`);
         setInterval(async () => {
             const isOnline = await ApiClient.checkConnection();
             this.updateConnectionUI(isOnline);
+        if (this.state.activeRole === 'VENDEDOR') this.startTracking();
         }, 12000);
     },
 
@@ -2253,6 +2268,72 @@ ${details}`);
             this.showToast("Error subiendo archivo: " + error.message, true);
         } finally {
             event.target.value = ''; // Reset input
+        }
+    },
+
+    // --- TRACKING LOGIC ---
+    startTracking() {
+        if (this.state.activeRole !== 'VENDEDOR') return;
+        if (this._trackingInterval) clearInterval(this._trackingInterval);
+        
+        // Every 3 minutes (180000 ms)
+        this._trackingInterval = setInterval(() => {
+            this.captureTrackingPoint();
+        }, 180000);
+        
+        // Capture one immediately
+        setTimeout(() => this.captureTrackingPoint(), 5000);
+    },
+    
+    stopTracking() {
+        if (this._trackingInterval) clearInterval(this._trackingInterval);
+    },
+    
+    async captureTrackingPoint() {
+        if (!navigator.geolocation) return;
+        
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const pt = {
+                uuid_dispositivo: this.generateUUID(),
+                latitud: position.coords.latitude,
+                longitud: position.coords.longitude,
+                fecha_hora: new Date().toISOString(),
+                bateria: null
+            };
+            
+            // Try to get battery
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    pt.bateria = Math.round(battery.level * 100);
+                } catch(e) {}
+            }
+            
+            if (!this.state.unsyncedTracking) this.state.unsyncedTracking = [];
+            this.state.unsyncedTracking.push(pt);
+            localStorage.setItem(this.getDbPrefix() + 'sam_unsynced_tracking', JSON.stringify(this.state.unsyncedTracking));
+            
+            // Attempt to sync tracking silently if online
+            if (await ApiClient.checkConnection()) {
+                this.syncTrackingSilently();
+            }
+        }, (error) => {
+            console.log("GPS no disponible para rastreo de fondo", error);
+        }, { enableHighAccuracy: true });
+    },
+    
+    async syncTrackingSilently() {
+        if (!this.state.unsyncedTracking || this.state.unsyncedTracking.length === 0) return;
+        if (!this.state.vendedor) return;
+        
+        try {
+            const syncResult = await ApiClient.syncTracking(this.state.vendedor.id, this.state.unsyncedTracking);
+            if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
+                this.state.unsyncedTracking = [];
+                localStorage.setItem(this.getDbPrefix() + 'sam_unsynced_tracking', JSON.stringify([]));
+            }
+        } catch(e) {
+            console.error("Fallo sync de tracking en background", e);
         }
     },
 };

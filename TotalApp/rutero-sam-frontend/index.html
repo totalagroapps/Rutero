@@ -906,6 +906,25 @@
 
         </section>
 
+
+        <!-- VIEW: ADMIN RADAR -->
+        <section id="view-admin-radar" class="app-view">
+            <div class="route-header" style="margin-bottom:16px;">
+                <span>Radar en Vivo (Rastreo de Vendedores)</span>
+                <button class="btn btn-primary btn-sm" onclick="AdminController.refreshRadarMap()">
+                    <i data-lucide="refresh-cw"></i> Actualizar
+                </button>
+            </div>
+            
+            <div class="summary-card" style="padding: 0; overflow: hidden; border-radius: var(--border-radius-md); height: 60vh;">
+                <div id="radar-map" style="width: 100%; height: 100%; z-index: 1;"></div>
+            </div>
+            
+            <div style="margin-top: 16px; padding: 12px; background: white; border-radius: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                <strong>Nota:</strong> Los vendedores deben tener la aplicación abierta y conexión a internet para reportar su posición en vivo. El sistema intenta capturar la ubicación cada 3 minutos.
+            </div>
+        </section>
+
         <!-- VIEW: ADMIN VENDEDORES -->
         <section id="view-admin-vendedores" class="app-view">
             <div class="route-header" style="margin-bottom:16px;">
@@ -1130,6 +1149,10 @@
         <button class="nav-item active role-admin-only" data-view="admin-dashboard">
             <i data-lucide="layout-dashboard"></i>
             <span>Inicio</span>
+        </button>
+        <button class="nav-item role-admin-only" data-view="admin-radar" onclick="AdminController.initRadarMap()">
+            <i data-lucide="crosshair"></i>
+            <span>Radar</span>
         </button>
         <button class="nav-item role-admin-only" data-view="admin-vendedores">
             <i data-lucide="users"></i>

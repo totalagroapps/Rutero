@@ -589,4 +589,29 @@ const ApiClient = {
             throw error;
         }
     }
+
+    async syncTracking(vendedorId, puntos) {
+        if (!puntos || puntos.length === 0) return { total_insertados: 0, puntos: [] };
+        try {
+            const payload = { vendedor_id: vendedorId, puntos: puntos };
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/tracking/sync`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            return response;
+        } catch (error) {
+            console.error("Error syncing tracking:", error);
+            throw error;
+        }
+    },
+
+    async getLatestTracking() {
+        try {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/tracking/latest`);
+            return response;
+        } catch (error) {
+            console.error("Error fetching latest tracking:", error);
+            throw error;
+        }
+    }
 };
