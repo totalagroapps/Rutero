@@ -7,6 +7,7 @@ from app.models.usuario import Usuario
 from app.models.cartera import FacturaPendiente, Abono
 from app.models.visita import Visita
 from app.models.devolucion import Devolucion
+from app.models.seguimiento import SeguimientoVendedor
 
 __all__ = [
     "Cliente",
@@ -19,4 +20,5 @@ __all__ = [
     "Abono",
     "Visita",
     "Devolucion",
+    "SeguimientoVendedor",
 ]
