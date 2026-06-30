@@ -588,7 +588,7 @@ const ApiClient = {
             console.error("Error uploading cartera:", error);
             throw error;
         }
-    }
+    },
 
     async syncTracking(vendedorId, puntos) {
         if (!puntos || puntos.length === 0) return { total_insertados: 0, puntos: [] };
