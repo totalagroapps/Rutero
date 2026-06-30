@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sam-rutero-cache-v50';
+﻿const CACHE_NAME = 'sam-rutero-cache-v51';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -96,3 +96,4 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+
