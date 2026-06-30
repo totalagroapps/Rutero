@@ -548,4 +548,45 @@ const ApiClient = {
             throw e;
         }
     }
+
+    async syncAbonos(abonos) {
+        if (!abonos || abonos.length === 0) return { total_recibidos: 0, total_insertados: 0, abonos: [] };
+        
+        try {
+            const payload = { abonos: abonos };
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/cartera/abonos/sync`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            return response;
+        } catch (error) {
+            console.error("Error syncing abonos:", error);
+            throw error;
+        }
+    },
+
+    async getCarteraVendedor(vendedorId) {
+        try {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/cartera/vendedor/${vendedorId}`);
+            return response;
+        } catch (error) {
+            console.error("Error fetching getCarteraVendedor:", error);
+            throw error;
+        }
+    },
+
+    async uploadAdminCarteraExcel(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        try {
+            const response = await this.fetchWithAuth(`${this.baseUrl}/api/v1/admin/upload-cartera`, {
+                method: 'POST',
+                body: formData
+            }, true);
+            return response;
+        } catch (error) {
+            console.error("Error uploading cartera:", error);
+            throw error;
+        }
+    }
 };

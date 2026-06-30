@@ -14,8 +14,6 @@ const App = {
         activeVisit: null, // client object currently being visited by Vendedor
         unsyncedOrders: [], // Vendedor orders taken offline/pending sync
         unsyncedClientes: [], // Vendedor new clients registered offline/pending sync
-        cartera: [], // Facturas pendientes
-        unsyncedAbonos: [], // Abonos offline
         gpsSimulated: true,
         userCoords: { lat: 4.7110, lng: -74.0721 }, // Default Bogotá, Colombia
         pedidosListFilter: 'PENDIENTE', // Vendedor orders list filter
@@ -520,6 +518,14 @@ const App = {
         const seq = this.state.clientes.length + 1;
         document.getElementById('new-client-secuencia').value = seq;
 
+        // Auto code generation PDV00X
+        const maxId = this.state.clientes.reduce((max, c) => {
+            const num = parseInt(c.codigo_pdv.replace(/\D/g, ''), 10);
+            return isNaN(num) ? max : Math.max(max, num);
+        }, 0);
+        const nextCode = `PDV${String(maxId + 1).padStart(3, '0')}`;
+        document.getElementById('new-client-codigo').value = nextCode;
+
         // Reset inputs
         document.getElementById('new-client-name').value = '';
         document.getElementById('new-client-encargado').value = '';
@@ -540,22 +546,15 @@ const App = {
         const nombre = document.getElementById('new-client-name').value.trim();
         const encargado = document.getElementById('new-client-encargado').value.trim();
         const direccion = document.getElementById('new-client-direccion').value.trim();
+        const codigo = document.getElementById('new-client-codigo').value.trim();
         const frecuencia = document.getElementById('new-client-frecuencia').value;
         const secuencia = document.getElementById('new-client-secuencia').value;
 
-        if (!nombre || !direccion) {
+
+        if (!nombre || !direccion || !codigo) {
             this.showToast("Por favor completa los campos obligatorios.", true);
             return;
         }
-
-        const municipioField = document.getElementById('new-client-municipio');
-        const municipioName = municipioField ? municipioField.value.trim() : '';
-        let prefix = 'PDV';
-        if (municipioName) {
-            prefix = municipioName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z]/g, "").substring(0, 3).toUpperCase();
-            if (prefix.length < 3) prefix = 'PDV';
-        }
-        const finalCodigo = prefix + '-' + Math.floor(1000 + Math.random() * 9000).toString();
 
         if (!lat || !lng) {
             this.showToast("Por favor captura las coordenadas GPS antes de guardar.", true);
@@ -576,8 +575,7 @@ const App = {
         const newClient = {
             id: tempId,
             uuid_dispositivo: this.generateUUID(),
-            vendedor_id: this.state.vendedor ? this.state.vendedor.id : (this.state.user ? this.state.user.vendedor_id : 1),
-            codigo_pdv: finalCodigo,
+            codigo_pdv: codigo,
             nombre: nombre,
             encargado: encargado || null,
             direccion: direccion,
@@ -723,19 +721,6 @@ const App = {
                 }
             }
 
-            // 1.6 Sync any pending offline abonos
-            if (this.state.unsyncedAbonos && this.state.unsyncedAbonos.length > 0) {
-                this.showToast(`Sincronizando ${this.state.unsyncedAbonos.length} recaudo(s)...`);
-                const syncResult = await ApiClient.syncAbonos(this.state.unsyncedAbonos);
-                
-                if (syncResult.total_insertados > 0 || syncResult.total_duplicados > 0) {
-                    this.state.unsyncedAbonos = [];
-                    localStorage.setItem(this.getDbPrefix() + 'sam_unsynced_abonos', JSON.stringify([]));
-                    this.showToast("Recaudos sincronizados con éxito!");
-                }
-            }
-
-
             // 2. Fetch fresh routes & catalog
             const vid = (this.state.user && this.state.user.vendedor_id) ? this.state.user.vendedor_id : 1;
             const vendedorRuta = await ApiClient.getRuta(vid);
@@ -815,8 +800,6 @@ const App = {
         this.state.unsyncedOrders.forEach(o => {
             pending++;
         });
-        if(this.state.unsyncedAbonos) pending += this.state.unsyncedAbonos.length;
-        if(this.state.unsyncedClientes) pending += this.state.unsyncedClientes.length;
 
         // Set initial local counts
         document.getElementById('vendedor-pending-count').innerText = pending.toString();
@@ -1185,7 +1168,6 @@ const App = {
                 this.showToast("No se pudo registrar el pedido. Verifica tu conexión.", true);
                 return; // Do not clear visit state if it failed
             }
-        }
 
         this.state.visitStates[client.codigo_pdv] = status;
 
@@ -2056,205 +2038,6 @@ ${details}`);
             this.showToast("Error al generar PDF: " + e.message, true);
         }
     }
-,
-
-    async handleUploadVendedoresExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        this.showToast("Subiendo vendedores...");
-        try {
-            await ApiClient.uploadAdminVendedoresExcel(file);
-            this.showToast("Vendedores importados exitosamente");
-            if (window.AdminController) {
-                AdminController.renderAdminVendedores();
-            }
-        } catch (e) {
-            this.showToast("Error subiendo vendedores: " + e.message, true);
-        }
-        event.target.value = '';
-    },
-
-    async importClientesExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        this.showToast("Subiendo clientes...");
-        try {
-            await ApiClient.uploadAdminClientesExcel(file);
-            this.showToast("Clientes importados exitosamente");
-            if (window.AdminController) {
-                AdminController.renderAdminClientes();
-            }
-        } catch (e) {
-            this.showToast("Error subiendo clientes: " + e.message, true);
-        }
-        event.target.value = '';
-    },
-
-    async handleUploadProductosExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        this.showToast("Subiendo productos...");
-        try {
-            await ApiClient.uploadAdminProductosExcel(file);
-            this.showToast("Productos importados exitosamente");
-            if (window.AdminController) {
-                AdminController.renderAdminProductos();
-            }
-        } catch (e) {
-            this.showToast("Error subiendo productos: " + e.message, true);
-        }
-        event.target.value = '';
-    }
-
-    // --- CARTERA LOGIC ---
-    renderCarteraView() {
-        if (!this.state.activeClient) return;
-        const cid = this.state.activeClient.id;
-        
-        const clientFacturas = (this.state.cartera || []).filter(f => f.cliente_id === cid);
-        
-        let adeudado = 0;
-        let vencido = 0;
-        const listEl = document.getElementById('cartera-facturas-list');
-        if(!listEl) return;
-        listEl.innerHTML = '';
-        
-        if (clientFacturas.length === 0) {
-            listEl.innerHTML = '<p style="color:var(--text-secondary); text-align:center; margin-top:20px;">No hay facturas pendientes.</p>';
-        } else {
-            clientFacturas.forEach(f => {
-                adeudado += parseFloat(f.saldo_pendiente);
-                if (f.estado === 'VENCIDA') {
-                    vencido += parseFloat(f.saldo_pendiente);
-                }
-                
-                const fDate = new Date(f.fecha_vencimiento).toLocaleDateString();
-                const fDiv = document.createElement('div');
-                fDiv.style = "padding:12px; border:1px solid var(--border-color); border-radius:var(--border-radius-md); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;";
-                fDiv.innerHTML = `
-                    <div>
-                        <div style="font-weight:600; font-size:0.95rem;">${this.escapeHtml(f.numero_factura)} <span style="font-size:0.75rem; padding:2px 6px; border-radius:10px; background:${f.estado==='VENCIDA'?'#fee2e2':'#dcfce3'}; color:${f.estado==='VENCIDA'?'#b91c1c':'#166534'}; margin-left:4px;">${f.estado}</span></div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">Vence: ${fDate}</div>
-                    </div>
-                    <div style="font-weight:bold; color:var(--text-primary); text-align:right;">
-                        $${parseFloat(f.saldo_pendiente).toLocaleString('es-CO')}
-                    </div>
-                `;
-                listEl.appendChild(fDiv);
-            });
-        }
-        
-        const totAd = document.getElementById('cartera-total-adeudado');
-        if(totAd) totAd.innerText = `$${adeudado.toLocaleString('es-CO')}`;
-        const totV = document.getElementById('cartera-total-vencido');
-        if(totV) totV.innerText = `$${vencido.toLocaleString('es-CO')}`;
-    },
-
-    showAbonoModal() {
-        AppModals.inject('modal-abono');
-        
-        if (!this.state.activeClient) return;
-        const cid = this.state.activeClient.id;
-        const clientFacturas = (this.state.cartera || []).filter(f => f.cliente_id === cid && parseFloat(f.saldo_pendiente) > 0);
-        
-        const select = document.getElementById('abono-factura');
-        if(!select) return;
-        select.innerHTML = '';
-        
-        if (clientFacturas.length === 0) {
-            this.showToast('No hay facturas con saldo pendiente para abonar.', true);
-            return;
-        }
-        
-        clientFacturas.forEach(f => {
-            const opt = document.createElement('option');
-            opt.value = f.id;
-            opt.text = `${f.numero_factura} (Saldo: $${parseFloat(f.saldo_pendiente).toLocaleString('es-CO')})`;
-            // store max amount
-            opt.dataset.max = f.saldo_pendiente;
-            select.appendChild(opt);
-        });
-        
-        document.getElementById('abono-monto').value = '';
-        document.getElementById('abono-notas').value = '';
-        
-        const modal = document.getElementById('modal-abono');
-        modal.classList.remove('hidden');
-    },
-
-    closeAbonoModal() {
-        const modal = document.getElementById('modal-abono');
-        if (modal) modal.classList.add('hidden');
-    },
-
-    handleSaveAbono(e) {
-        e.preventDefault();
-        const select = document.getElementById('abono-factura');
-        const fId = parseInt(select.value, 10);
-        const monto = parseFloat(document.getElementById('abono-monto').value);
-        const metodo = document.getElementById('abono-metodo').value;
-        const notas = document.getElementById('abono-notas').value;
-        
-        if (!fId || isNaN(monto) || monto <= 0) {
-            this.showToast("Datos inválidos", true);
-            return;
-        }
-        
-        const opt = select.options[select.selectedIndex];
-        const maxMonto = parseFloat(opt.dataset.max);
-        
-        if (monto > maxMonto) {
-            this.showToast(`El monto no puede superar el saldo pendiente ($${maxMonto.toLocaleString('es-CO')})`, true);
-            return;
-        }
-        
-        const newAbono = {
-            uuid_dispositivo: this.generateUUID(),
-            factura_id: fId,
-            vendedor_id: this.state.vendedor.id,
-            monto: monto,
-            fecha: new Date().toISOString(),
-            metodo_pago: metodo,
-            notas: notas
-        };
-        
-        // Save to offline queue
-        if (!this.state.unsyncedAbonos) this.state.unsyncedAbonos = [];
-        this.state.unsyncedAbonos.push(newAbono);
-        localStorage.setItem(this.getDbPrefix() + 'sam_unsynced_abonos', JSON.stringify(this.state.unsyncedAbonos));
-        
-        // Update local cartera state immediately
-        const fIndex = this.state.cartera.findIndex(f => f.id === fId);
-        if (fIndex !== -1) {
-            this.state.cartera[fIndex].saldo_pendiente = parseFloat(this.state.cartera[fIndex].saldo_pendiente) - monto;
-            if (this.state.cartera[fIndex].saldo_pendiente <= 0) {
-                this.state.cartera[fIndex].estado = 'PAGADA';
-            }
-            localStorage.setItem(this.getDbPrefix() + 'sam_cartera', JSON.stringify(this.state.cartera));
-        }
-        
-        this.showToast("Abono registrado localmente");
-        this.closeAbonoModal();
-        this.renderCarteraView();
-        
-        this.updateSyncBadge();
-    },
-
-    async handleUploadCarteraExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        this.showToast("Subiendo cartera de Siigo...");
-        try {
-            const result = await ApiClient.uploadAdminCarteraExcel(file);
-            this.showToast(`Éxito: ${result.nuevas_facturas} nuevas facturas procesadas.`);
-            // Refresh admin dashboard stats if we had any
-            setTimeout(() => location.reload(), 1500);
-        } catch (error) {
-            this.showToast("Error subiendo archivo: " + error.message, true);
-        } finally {
-            event.target.value = ''; // Reset input
-        }
-    },
 };
 
 // Global hook for events

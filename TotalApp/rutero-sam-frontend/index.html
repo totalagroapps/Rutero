@@ -949,6 +949,11 @@
                         <i data-lucide="upload-cloud"></i> Importar
                     </button>
                     <input type="file" id="input-import-clientes" accept=".xlsx" style="display:none;" onchange="App.importClientesExcel(event)">
+                    <button class="btn btn-outline btn-sm" onclick="document.getElementById('input-import-cartera').click()" title="Subir Excel de Cartera Siigo" style="color: #ea580c; border-color: #ea580c;">
+                        <i data-lucide="wallet"></i> Subir Cartera
+                    </button>
+                    <input type="file" id="input-import-cartera" accept=".xlsx" style="display:none;" onchange="App.handleUploadCarteraExcel(event)">
+
                     <button class="btn btn-primary btn-sm" onclick="AdminController.openClienteAdminModal()">
                         <i data-lucide="plus"></i> Nuevo
                     </button>
