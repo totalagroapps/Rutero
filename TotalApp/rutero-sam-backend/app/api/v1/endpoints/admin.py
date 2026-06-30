@@ -401,8 +401,9 @@ async def upload_clientes_siigo(db: DbSession, file: UploadFile = File(...)):
         df = pd.read_excel(BytesIO(contents))
         count_added = 0
         for index, row in df.iterrows():
-            # Obtener datos de las columnas de Siigo
-            identificacion = str(row.get('IdentificaciÃ³n', '')).strip()
+            # Obtener datos de las columnas
+            # Handles different variations of 'Identificación'
+            identificacion = str(row.get('Identificación', row.get('Identificacion', row.get('IdentificaciÃ³n', row.get('NIT', ''))))).strip()
             
             # Validar que exista identificacion
             if not identificacion or identificacion.lower() == 'nan':
@@ -412,16 +413,16 @@ async def upload_clientes_siigo(db: DbSession, file: UploadFile = File(...)):
             # Combinamos identificacion y sucursal si existe para el codigo pdv
             codigo = f"{identificacion}-{sucursal}" if (sucursal and sucursal.lower() != 'nan') else identificacion
             
-            nombre = str(row.get('Nombre tercero', 'Cliente sin nombre')).strip()
+            nombre = str(row.get('Nombre tercero', row.get('Nombre', 'Cliente sin nombre'))).strip()
             
-            direccion_base = str(row.get('DirecciÃ³n', '')).strip()
-            ciudad = str(row.get('Ciudad', '')).strip()
+            direccion_base = str(row.get('Dirección', row.get('Direccion', row.get('Direccion ', row.get('DirecciÃ³n', ''))))).strip()
+            ciudad = str(row.get('Ciudad', row.get('ciudad', ''))).strip()
             direccion = f"{direccion_base}, {ciudad}".strip(", ")
             if not direccion or direccion.lower() == 'nan':
                 direccion = 'No registrada'
                 
-            encargado = str(row.get('Nombres contacto', '')).strip()
-            if encargado.lower() == 'nan':
+            encargado = str(row.get('Nombres contacto', row.get('Contacto', ''))).strip()
+            if encargado.lower() == 'nan' or not encargado:
                 encargado = None
                 
             estado = str(row.get('Estado', '')).strip().lower()
