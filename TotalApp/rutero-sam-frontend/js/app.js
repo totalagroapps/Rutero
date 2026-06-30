@@ -1721,6 +1721,17 @@ ${details}`);
         }, 12000);
     },
 
+    
+    saveVisitState() {
+        if (this.state.activeVisit) {
+            localStorage.setItem('rutero_active_visit', JSON.stringify(this.state.activeVisit));
+            localStorage.setItem('rutero_cart', JSON.stringify(this.state.cart));
+        } else {
+            localStorage.removeItem('rutero_active_visit');
+            localStorage.removeItem('rutero_cart');
+        }
+    },
+
     updateConnectionUI(isOnline) { },
 
     updateSyncBadge() {
