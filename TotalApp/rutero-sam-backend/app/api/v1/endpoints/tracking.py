@@ -1,5 +1,5 @@
 ﻿from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from typing import List
 from datetime import datetime
 
@@ -71,6 +71,35 @@ def obtener_ultima_ubicacion_vendedores(db: DbSession):
         select(SeguimientoVendedor, Vendedor.nombre)
         .join(Vendedor, Vendedor.id == SeguimientoVendedor.vendedor_id)
         .join(subq, (SeguimientoVendedor.vendedor_id == subq.c.vendedor_id) & (SeguimientoVendedor.fecha_hora == subq.c.max_fecha))
+    )
+    
+    resultados = db.execute(stmt).all()
+    
+    respuesta = []
+    for seguimiento, nombre_vendedor in resultados:
+        respuesta.append(VendedorTrackingOut(
+            vendedor_id=seguimiento.vendedor_id,
+            nombre=nombre_vendedor,
+            latitud=seguimiento.latitud,
+            longitud=seguimiento.longitud,
+            fecha_hora=seguimiento.fecha_hora,
+            bateria=seguimiento.bateria
+        ))
+        
+    return respuesta
+
+
+@router.get("/history/{vendedor_id}", response_model=List[VendedorTrackingOut])
+def obtener_historial_vendedor(vendedor_id: int, db: DbSession):
+    # Only today's records
+    today = datetime.utcnow().date()
+    
+    stmt = (
+        select(SeguimientoVendedor, Vendedor.nombre)
+        .join(Vendedor, Vendedor.id == SeguimientoVendedor.vendedor_id)
+        .where(SeguimientoVendedor.vendedor_id == vendedor_id)
+        .where(func.date(SeguimientoVendedor.fecha_hora) == today)
+        .order_by(SeguimientoVendedor.fecha_hora.asc())
     )
     
     resultados = db.execute(stmt).all()
